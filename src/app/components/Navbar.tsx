@@ -1,164 +1,184 @@
-"use client"; // Needed in Next.js App Router
+'use client';
 
-import React, { useState, useEffect } from 'react';
-import Link from "next/link";
-import { AppBar, Toolbar, Button, Box, Typography, Avatar } from "@mui/material";
-import { exo2, exo2Regular } from "../styles";
-import { onAuthStateChanged, User, getAuth } from 'firebase/auth'; // Import User type
-import { auth } from '../firebaseConfig';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { AppBar, Toolbar, Button, Typography, Box } from '@mui/material';
+import type { Variants } from 'framer-motion';
+
+const MotionButton = motion(Button);
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from "../firebaseConfig";
 
 interface LiveSession {
-  live: boolean;
-  year: string;
-  round: string;
-  session: string;
+	live: boolean;
+	year: string;
+	round: string;
+	session: string;
 }
 
 export default function Navbar() {
-  const [user, setUser] = useState<User | null>(null); // Explicitly type as User | null
+	// const [user, setUser] = useState<User | null>(null); // Explicitly type as User | null
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser); // TypeScript knows currentUser is User | null
-    });
+	// useEffect(() => {
+	//   const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+	//     setUser(currentUser); // TypeScript knows currentUser is User | null
+	//   });
 
-    return () => unsubscribe();
-  }, []);
+	//   return () => unsubscribe();
+	// }, []);
 
-  useEffect(() => {getLiveSessionData()}, []);
+	useEffect(() => { getLiveSessionData() }, []);
 
-  const [session, setSession] = useState<LiveSession>({ live: false, year: "", round: "", session: "" });
-
-
-  async function getLiveSessionData() {
-    const docRef = doc(db, "live", "session");
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      const data = docSnap.data() as Partial<{
-        live: boolean;
-        year: string;
-        round: string;
-        session: string;
-      }>;
-      if (data.live == true && data.year && data.round && data.session) {
-        setSession({
-          live: data.live,
-          year: data.year,
-          round: data.round,
-          session: data.session
-        });
-      }
-    }
-  }
+	const [session, setSession] = useState<LiveSession>({ live: false, year: "", round: "", session: "" });
 
 
+	async function getLiveSessionData() {
+		const docRef = doc(db, "live", "session");
+		const docSnap = await getDoc(docRef);
 
-  return (
-    <AppBar position="static">
-      <Toolbar>
-        <Button
-          color="inherit"
-          component={Link}
-          href="/" // Use href instead of to for Next.js Link
-          sx={{ textTransform: "none" }}
-        >
-          <Typography
-            variant="h6"
-            sx={{ fontSize: "24px", fontWeight: "bold", fontFamily: exo2.style.fontFamily }}
-          >
-            F1-Metrics
-          </Typography>
-        </Button>
-        <Box sx={{ marginLeft: "auto" }} flexDirection={"row"} display={"flex"} gap={2} alignItems={"center"}>
-          {
-            session.live && <Button
-              variant="outlined"
-              sx={{
-                color: 'red',
-                borderColor: 'red',
-                fontWeight: 'bold',
-                ml: 2,
-                textTransform: 'none',
-                fontFamily: exo2Regular.style.fontFamily,
-                display: 'flex',
-                alignItems: 'center',
-                px: 1.5,
-                py: 0.5,
-                borderRadius: '12px',
-                height: "38px"
-              }}
-              component={Link}
-              href={`/liveDash/${session.year}/${session.round}/${session.session}`}
-            >
-              <Box
-                sx={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: '50%',
-                  backgroundColor: 'red',
-                  marginRight: 1,
-                  animation: 'flash 1s infinite ease-in-out',
-                }}
-              />
-              LIVE
-            </Button>
-          }
-          {user ? (
-            <Button
-              color="inherit"
-              component={Link}
-              href="/profile" // Use href instead of to
-              sx={{ textTransform: "none", fontFamily: exo2Regular.style.fontFamily }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Avatar
-                  src={user.photoURL || "/default-avatar.png"} // Default avatar if no photo URL
-                  // alt={user.displayName}
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    border: "2px solid lightgrey",
-                    marginRight: 1
-                  }}
+		if (docSnap.exists()) {
+			const data = docSnap.data() as Partial<{
+				live: boolean;
+				year: string;
+				round: string;
+				session: string;
+			}>;
+			if (data.live == true && data.year && data.round && data.session) {
+				setSession({
+					live: data.live,
+					year: data.year,
+					round: data.round,
+					session: data.session
+				});
+			}
+		}
+	}
 
-                />
-                <Typography
-                  sx={{ color: 'lightgrey', fontFamily: exo2.style.fontFamily, fontWeight: "700", fontSize: 22, }}
-                >
-                  {`${user.displayName || 'User'}`}
-                </Typography>
-                {/* <Typography
-                  sx={{ color: 'inherit', fontFamily: exo2.style.fontFamily}}
-                >
-                  {`${user.email}`}
-                </Typography> */}
-              </Box>
-            </Button>
-          ) : (
-            <>
-              <Button
-                color="inherit"
-                component={Link}
-                href="/login" // Use href instead of to
-                sx={{ textTransform: "none", fontFamily: exo2Regular.style.fontFamily }}
-              >
-                Login
-              </Button>
-              <Button
-                color="inherit"
-                component={Link}
-                href="/signup" // Use href instead of to
-                sx={{ textTransform: "none", fontFamily: exo2Regular.style.fontFamily }}
-              >
-                Sign Up
-              </Button>
-            </>
-          )}
-        </Box>
-      </Toolbar>
-    </AppBar>
-  );
+
+
+	return (
+		<AppBar position="static">
+			<Toolbar>
+				<BrandLogo />
+				<Box sx={{ marginLeft: "auto" }} flexDirection={"row"} display={"flex"} gap={2} alignItems={"center"}>
+					{
+						session.live && <Button
+							variant="outlined"
+							sx={{
+								color: 'red',
+								borderColor: 'red',
+								fontWeight: 'bold',
+								ml: 2,
+								textTransform: 'none',
+								display: 'flex',
+								alignItems: 'center',
+								px: 1.5,
+								py: 0.5,
+								borderRadius: '12px',
+								height: "38px"
+							}}
+							component={Link}
+							href={`/liveDash/${session.year}/${session.round}/${session.session}`}
+						>
+							<Box
+								sx={{
+									width: 10,
+									height: 10,
+									borderRadius: '50%',
+									backgroundColor: 'red',
+									marginRight: 1,
+									animation: 'flash 1s infinite ease-in-out',
+								}}
+							/>
+							LIVE
+						</Button>
+					}
+				</Box>
+			</Toolbar>
+		</AppBar>
+	);
 }
+
+const letterVariants: Variants = {
+	initial: { y: 0 },
+	hover: (i: number) => ({
+		y: [-10, 4, 0],
+		transition: {
+			delay: i * 0.05,
+			duration: 0.5,
+			ease: 'easeOut', // or 'easeInOut' if you prefer
+			type: 'tween',   // 👈 fixes the multiple keyframes issue
+		},
+	}),
+};
+
+
+const BrandLogo = () => {
+	const [isHovered, setIsHovered] = useState(false);
+	const letters = 'Metrics'.split('');
+
+	return (
+		<motion.div
+			onHoverStart={() => setIsHovered(true)}
+			onHoverEnd={() => setIsHovered(false)}
+		>
+			<Box
+				component={Link}
+				href="/"
+				sx={{
+					display: 'flex',
+					alignItems: 'center',
+					textDecoration: 'none',
+					px: 0,
+					borderRadius: 2,
+					fontFamily: 'inherit',
+				}}
+			>
+				<Typography
+					variant="h6"
+					sx={{
+						fontSize: 24,
+						fontWeight: 'bold',
+						fontFamily: 'inherit',
+						color: isHovered ? 'red' : 'inherit',
+						transition: 'color 0.3s ease',
+						mr: 0.5,
+					}}
+				>
+					F1
+				</Typography>
+				<Typography
+					variant="h6"
+					sx={{
+						fontSize: 24,
+						fontWeight: 'bold',
+						fontFamily: 'inherit',
+						transition: 'color 0.3s ease',
+						mr: 0.5,
+					}}
+				>
+					-
+				</Typography>
+				{letters.map((char, i) => (
+					<motion.span
+						key={i}
+						custom={i}
+						initial="initial"
+						animate={isHovered ? 'hover' : 'initial'}
+						variants={letterVariants}
+						style={{
+							display: 'inline-block',
+							fontSize: '24px',
+							fontWeight: 'bold',
+							fontFamily: 'inherit',
+							color: 'inherit',
+						}}
+					>
+						{char}
+					</motion.span>
+				))}
+			</Box>
+		</motion.div>
+	);
+};

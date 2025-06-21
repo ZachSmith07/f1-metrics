@@ -11,17 +11,19 @@ export class F1Event {
 	topTeams: [string, number][] | undefined;
 	topDriver: [string, number] | undefined;
 	fl: string | undefined;
+	round: number;
 
 	constructor(
 		event: string,
 		country: string,
 		date: string,
 		sessions: string[] | string[][],
+		round: number,
 		top3?: string[],
 		topTeams?: [string, number][],
 		championshipLeader?: [string, number],
 		topDriver?: [string, number],
-		fl?: string
+		fl?: string,
 	) {
 		this.event = event;
 		this.country = country;
@@ -48,6 +50,7 @@ export class F1Event {
 		this.topDriver = topDriver;
 		this.championshipLeader = championshipLeader;
 		this.fl = fl;
+		this.round = round;
 	}
 
 	// Static method to create an instance from a map (plain object)
@@ -67,6 +70,7 @@ export class F1Event {
 			map.country,
 			map.date,
 			map.sessions,
+			1,
 			map.top3,
 			map.topTeams,
 			map.driversLeader,
@@ -98,6 +102,7 @@ export async function fetchYearSchedule(year: string): Promise<F1Event[]> {
 
 		for (let i = 0; i < jsonData.length; i++) {
 			events.push(F1Event.fromMap(jsonData[i]));
+			events[i].round = i;
 		}
 
 		return events;

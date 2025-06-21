@@ -79,47 +79,60 @@ export const DisplayDriverData: React.FC<DisplayDriverDataProps> = ({
                                     )}
 
                                     <Box flexDirection={"row"} display={"flex"} alignItems={"center"}>
-                                        <Button
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "start",
-                                                border: "none",
-                                                borderRadius: "10px",
-                                                color: "white",
-                                                fontSize: "18px",
-                                                width: "108px",
-                                                height: "50px",
-                                                cursor: "pointer",
-                                                textTransform: "none",
-                                            }}
-                                            onClick={() => {
-                                                console.log(driver);
-                                                onClick(number);
-                                            }}
+                                        <motion.div
+                                            whileHover={{ scale: 1.05 }}
+                                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                            style={{ display: "inline-block" }}
                                         >
-                                            <div style={{
-                                                fontSize: "22px",
-                                                width: "24px",
-                                                marginRight: "10px",
-                                                fontWeight: "bold",
-                                                display: "flex",
-                                                justifyContent: "flex-end",
-                                            }}>
-                                                {index + 1}
-                                            </div>
-                                            <div style={{
-                                                backgroundColor: driver.driver.teamColour,
-                                                width: "6px",
-                                                height: "30px",
-                                                marginRight: "8px"
-                                            }} />
-                                            <div style={{ display: "flex", alignItems: "baseline", fontWeight: "bold" }}>
-                                                <span style={{ fontWeight: "bold" }}>
-                                                    {driver.driver.driver.split(" ")[0]}
-                                                </span>
-                                            </div>
-                                        </Button>
+                                            <Button
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "start",
+                                                    border: "none",
+                                                    borderRadius: "10px",
+                                                    color: "white",
+                                                    fontSize: "18px",
+                                                    width: "108px",
+                                                    height: "50px",
+                                                    cursor: "pointer",
+                                                    textTransform: "none",
+                                                    backgroundColor: "transparent",
+                                                    transition: "background-color 0.2s ease-in-out",
+                                                    "&:hover": {
+                                                        backgroundColor: "rgba(255, 255, 255, 0.1)", // Add your preferred hover color here
+                                                    },
+                                                }}
+                                                onClick={() => {
+                                                    console.log(driver);
+                                                    onClick(number);
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        fontSize: "22px",
+                                                        width: "24px",
+                                                        marginRight: "10px",
+                                                        fontWeight: "bold",
+                                                        display: "flex",
+                                                        justifyContent: "flex-end",
+                                                    }}
+                                                >
+                                                    {index + 1}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        backgroundColor: driver.driver.teamColour,
+                                                        width: "6px",
+                                                        height: "30px",
+                                                        marginRight: "8px",
+                                                    }}
+                                                />
+                                                <div style={{ display: "flex", alignItems: "baseline", fontWeight: "bold" }}>
+                                                    <span style={{ fontWeight: "bold" }}>{driver.driver.driver.split(" ")[0]}</span>
+                                                </div>
+                                            </Button>
+                                        </motion.div>
 
                                         <DisplayInterval telemetry={driver} position={index + 1} />
                                         <DisplayLaptimes telemetry={driver} />

@@ -10,6 +10,7 @@ import {
     Box,
     Skeleton,
     Button,
+    MenuItem, Select, FormControl, InputLabel
 } from '@mui/material';
 import { PracticeResult, QualiResult, RaceResult } from '../utils/fetchResults';
 
@@ -60,9 +61,10 @@ interface RaceResultsTableProps {
     year: string;
     round: string;
     session: string;
+    availableSessions: string[];
 }
 
-export const RaceResultsTable: React.FC<RaceResultsTableProps> = ({ results, year, round, session }) => {
+export const RaceResultsTable: React.FC<RaceResultsTableProps> = ({ results, year, round, session, availableSessions }) => {
     let maxLaps = Math.max(...results.map((x) => x.lapsCompleted));
     const router = useRouter();
 
@@ -71,30 +73,81 @@ export const RaceResultsTable: React.FC<RaceResultsTableProps> = ({ results, yea
     return (
         <Box padding={"20px"} sx={{ width: '1300px', maxWidth: '100%' }} >
             <TableContainer component={Paper} style={{ borderRadius: 12 }}>
-                <Box display={"flex"} flexDirection={"row"} alignItems={"center"} gap={1}>
-                    <Typography fontWeight={"bold"} fontSize={22} sx={{ m: 2 }}>
-                        {year} {round.slice(3)} {session} Results
-                    </Typography>
-                    <Button
+                <Box
+                    display="flex"
+                    flexDirection="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    gap={1}
+                    width="100%" // ensure spacing works
+                >
+                    {/* Left section: title + button */}
+                    <Box display="flex" alignItems="center" gap={1}>
+                        <Typography fontWeight="bold" fontSize={22} sx={{ m: 2 }}>
+                            {year} {round.slice(3)} {session} Results
+                        </Typography>
+
+                        <Button
+                            sx={{
+                                height: '40px',
+                                color: '#fff',
+                                backgroundColor: '#FFFFFF11',
+                                fontWeight: 'bold',
+                                '&:hover': {
+                                    backgroundColor: '#444',
+                                    borderColor: '#fff',
+                                },
+                                textTransform: 'none',
+                                px: 2,
+                                borderRadius: '8px',
+                            }}
+                            onClick={() => {
+                                router.push(`/liveDash/${year}/${round.slice(4)}/${session}`);
+                            }}
+                        >
+                            Replay
+                        </Button>
+                    </Box>
+
+                    <FormControl
+                        size="small"
                         sx={{
-                            height: "40px",
-                            color: "#fff",
-                            backgroundColor: "#FFFFFF11",
-                            fontWeight: "bold",
-                            '&:hover': {
-                                backgroundColor: "#444",
-                                borderColor: "#fff",
+                            minWidth: 160,
+                            mr: 2,
+                            backgroundColor: '#FFFFFF11',
+                            borderRadius: 1,
+                            '& .MuiOutlinedInput-root': {
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                '& fieldset': {
+                                    borderColor: '#555',
+                                },
+                                '&:hover fieldset': {
+                                    borderColor: '#888',
+                                },
+                                '&.Mui-focused fieldset': {
+                                    borderColor: '#aaa',
+                                },
                             },
-                            textTransform: "none",
-                            px: 2,
-                            borderRadius: "8px",
-                        }}
-                        onClick={() => {
-                            router.push(`/liveDash/${year}/${round.slice(4)}/${session}`);
                         }}
                     >
-                        Replay
-                    </Button>
+                        <InputLabel sx={{ color: '#ccc' }}>Jump to Session</InputLabel>
+                        <Select
+                            label="Jump to Session"
+                            value=""
+                            onChange={(e) => {
+                                const selected = e.target.value;
+                                router.push(`/session/${year}/${round}/${selected}`);
+                            }}
+                            displayEmpty
+                        >
+                            {availableSessions.map((sessionName) => (
+                                <MenuItem key={sessionName} value={sessionName}>
+                                    {sessionName}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                 </Box>
                 <Table>
                     <TableHead>
@@ -272,9 +325,10 @@ interface QualiResultsTableProps {
     year: string;
     round: string;
     session: string;
+    availableSessions: string[];
 }
 
-export const QualiResultsTable: React.FC<QualiResultsTableProps> = ({ results, year, round, session }) => {
+export const QualiResultsTable: React.FC<QualiResultsTableProps> = ({ results, year, round, session, availableSessions }) => {
     let fastq1 = Math.min(...results.map((x) => x.q1 == -1 ? 9999 : x.q1));
     let fastq2 = Math.min(...results.map((x) => x.q2 == -1 ? 9999 : x.q2));
     let fastq3 = Math.min(...results.map((x) => x.q3 == -1 ? 9999 : x.q3));
@@ -284,30 +338,81 @@ export const QualiResultsTable: React.FC<QualiResultsTableProps> = ({ results, y
     return (
         <Box padding={"20px"} sx={{ width: '1300px', maxWidth: '100%' }} >
             <TableContainer component={Paper} style={{ borderRadius: 12 }}>
-                <Box display={"flex"} flexDirection={"row"} alignItems={"center"} gap={1}>
-                    <Typography fontWeight={"bold"} fontSize={22} sx={{ m: 2 }}>
-                        {year} {round.slice(3)} {session} Results
-                    </Typography>
-                    <Button
+                <Box
+                    display="flex"
+                    flexDirection="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    gap={1}
+                    width="100%" // ensure spacing works
+                >
+                    {/* Left section: title + button */}
+                    <Box display="flex" alignItems="center" gap={1}>
+                        <Typography fontWeight="bold" fontSize={22} sx={{ m: 2 }}>
+                            {year} {round.slice(3)} {session} Results
+                        </Typography>
+
+                        <Button
+                            sx={{
+                                height: '40px',
+                                color: '#fff',
+                                backgroundColor: '#FFFFFF11',
+                                fontWeight: 'bold',
+                                '&:hover': {
+                                    backgroundColor: '#444',
+                                    borderColor: '#fff',
+                                },
+                                textTransform: 'none',
+                                px: 2,
+                                borderRadius: '8px',
+                            }}
+                            onClick={() => {
+                                router.push(`/liveDash/${year}/${round.slice(4)}/${session}`);
+                            }}
+                        >
+                            Replay
+                        </Button>
+                    </Box>
+
+                    <FormControl
+                        size="small"
                         sx={{
-                            height: "40px",
-                            color: "#fff",
-                            backgroundColor: "#FFFFFF11",
-                            fontWeight: "bold",
-                            '&:hover': {
-                                backgroundColor: "#444",
-                                borderColor: "#fff",
+                            minWidth: 160,
+                            mr: 2,
+                            backgroundColor: '#FFFFFF11',
+                            borderRadius: 1,
+                            '& .MuiOutlinedInput-root': {
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                '& fieldset': {
+                                    borderColor: '#555',
+                                },
+                                '&:hover fieldset': {
+                                    borderColor: '#888',
+                                },
+                                '&.Mui-focused fieldset': {
+                                    borderColor: '#aaa',
+                                },
                             },
-                            textTransform: "none",
-                            px: 2,
-                            borderRadius: "8px",
-                        }}
-                        onClick={() => {
-                            router.push(`/liveDash/${year}/${round.slice(4)}/${session}`);
                         }}
                     >
-                        Replay
-                    </Button>
+                        <InputLabel sx={{ color: '#ccc' }}>Jump to Session</InputLabel>
+                        <Select
+                            label="Jump to Session"
+                            value=""
+                            onChange={(e) => {
+                                const selected = e.target.value;
+                                router.push(`/session/${year}/${round}/${selected}`);
+                            }}
+                            displayEmpty
+                        >
+                            {availableSessions.map((sessionName) => (
+                                <MenuItem key={sessionName} value={sessionName}>
+                                    {sessionName}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                 </Box>
                 <Table>
                     <TableHead>
@@ -396,9 +501,10 @@ interface PracticeResultsTableProps {
     year: string;
     round: string;
     session: string;
+    availableSessions: string[];
 }
 
-export const PracticeResultsTable: React.FC<PracticeResultsTableProps> = ({ results, year, round, session }) => {
+export const PracticeResultsTable: React.FC<PracticeResultsTableProps> = ({ results, year, round, session, availableSessions }) => {
     let fastestLap = Math.min(...results.map((x) => x.fastestLap == -1 ? 9999 : x.fastestLap));
 
     const router = useRouter();
@@ -406,30 +512,81 @@ export const PracticeResultsTable: React.FC<PracticeResultsTableProps> = ({ resu
     return (
         <Box padding={"20px"} sx={{ width: '1300px', maxWidth: '100%' }} >
             <TableContainer component={Paper} style={{ borderRadius: 12 }}>
-                <Box display={"flex"} flexDirection={"row"} alignItems={"center"} gap={1}>
-                    <Typography fontWeight={"bold"} fontSize={22} sx={{ m: 2 }}>
-                        {year} {round.slice(3)} {session} Results
-                    </Typography>
-                    <Button
+                <Box
+                    display="flex"
+                    flexDirection="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    gap={1}
+                    width="100%" // ensure spacing works
+                >
+                    {/* Left section: title + button */}
+                    <Box display="flex" alignItems="center" gap={1}>
+                        <Typography fontWeight="bold" fontSize={22} sx={{ m: 2 }}>
+                            {year} {round.slice(3)} {session} Results
+                        </Typography>
+
+                        <Button
+                            sx={{
+                                height: '40px',
+                                color: '#fff',
+                                backgroundColor: '#FFFFFF11',
+                                fontWeight: 'bold',
+                                '&:hover': {
+                                    backgroundColor: '#444',
+                                    borderColor: '#fff',
+                                },
+                                textTransform: 'none',
+                                px: 2,
+                                borderRadius: '8px',
+                            }}
+                            onClick={() => {
+                                router.push(`/liveDash/${year}/${round.slice(4)}/${session}`);
+                            }}
+                        >
+                            Replay
+                        </Button>
+                    </Box>
+
+                    <FormControl
+                        size="small"
                         sx={{
-                            height: "40px",
-                            color: "#fff",
-                            backgroundColor: "#FFFFFF11",
-                            fontWeight: "bold",
-                            '&:hover': {
-                                backgroundColor: "#444",
-                                borderColor: "#fff",
+                            minWidth: 160,
+                            mr: 2,
+                            backgroundColor: '#FFFFFF11',
+                            borderRadius: 1,
+                            '& .MuiOutlinedInput-root': {
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                '& fieldset': {
+                                    borderColor: '#555',
+                                },
+                                '&:hover fieldset': {
+                                    borderColor: '#888',
+                                },
+                                '&.Mui-focused fieldset': {
+                                    borderColor: '#aaa',
+                                },
                             },
-                            textTransform: "none",
-                            px: 2,
-                            borderRadius: "8px",
-                        }}
-                        onClick={() => {
-                            router.push(`/liveDash/${year}/${round.slice(4)}/${session}`);
                         }}
                     >
-                        Replay
-                    </Button>
+                        <InputLabel sx={{ color: '#ccc' }}>Jump to Session</InputLabel>
+                        <Select
+                            label="Jump to Session"
+                            value=""
+                            onChange={(e) => {
+                                const selected = e.target.value;
+                                router.push(`/session/${year}/${round}/${selected}`);
+                            }}
+                            displayEmpty
+                        >
+                            {availableSessions.map((sessionName) => (
+                                <MenuItem key={sessionName} value={sessionName}>
+                                    {sessionName}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                 </Box>
                 <Table>
                     <TableHead>

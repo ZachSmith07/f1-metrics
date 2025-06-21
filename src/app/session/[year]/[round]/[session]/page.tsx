@@ -16,6 +16,7 @@ import LapChart from "@/app/components/LapChart";
 import SpeedsChart from "@/app/components/MaxSpeeds";
 import PositionChanges from "@/app/components/PositionChanges";
 import SpeedDistance from "@/app/components/SpeedDistance";
+import { getMetadata, getStorage, ref } from "firebase/storage";
 
 export default function SessionDash() {
     const [selection, setSelection] = useState("results");
@@ -23,6 +24,8 @@ export default function SessionDash() {
     const [lapsData, setLapsData] = useState<LapData[][]>([[]]);
     const [driverData, setDriverData] = useState<DriverData[]>([]);
     const [drivers, setDrivers] = useState<string[]>([]);
+
+    const [availableSessions, setAvailableSessions] = useState<string[]>(["Practice 1", "Practice 2", "Practice 3", "Qualifying", "Race"]);
 
 
 
@@ -33,6 +36,32 @@ export default function SessionDash() {
 
 
     const [results, setResults] = useState<(any)[]>([]);
+
+    const fileExists = async (path: string): Promise<boolean> => {
+        const storage = getStorage();
+        const fileRef = ref(storage, path);
+
+        try {
+            await getMetadata(fileRef);
+            return true; // File exists
+        } catch (error: any) {
+            if (error.code === 'storage/object-not-found') {
+                return false; // File does not exist
+            }
+            throw error; // Unexpected error
+        }
+    };
+
+    useEffect(() => {
+        const setSessions = async () => {
+
+            if (await fileExists(`F1DataN/${year}/${round}/Sprint/results.json`))
+            {
+                setAvailableSessions(["Practice 1", "Sprint Qualifying", "Sprint", "Qualifying", "Race"]);
+            }
+        }
+        setSessions();
+    }, []);
 
 
     const handleChange = (_: React.MouseEvent<HTMLElement>, newSelection: string | null) => {
@@ -101,16 +130,6 @@ export default function SessionDash() {
         fetchResults();
     }, []);
 
-    const toggleSx = {
-        '&.Mui-selected': {
-            backgroundColor: '#cccccc', // light grey
-            color: 'black',
-            '&:hover': {
-                backgroundColor: '#bbbbbb', // slightly darker on hover
-            },
-        },
-    };
-
     return (
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
@@ -122,41 +141,71 @@ export default function SessionDash() {
                     onChange={handleChange}
                     size="small"
                     sx={{
-                        borderRadius: 2,
-                        backgroundColor: '#1c1c1c',
+                        // container styling
+                        p: 0.5,
+                        gap: 0.5,
+                        borderRadius: 3,
+                        background: 'rgba(40,40,40,0.6)',       // glassy dark
+                        backdropFilter: 'blur(6px)',
+                        boxShadow: '0 4px 10px rgba(0,0,0,0.4)',
                         flexWrap: 'wrap',
                     }}
                 >
                     {[
                         { label: 'Results', value: 'results' },
                         { label: 'Strategy', value: 'strategy' },
-                        ...(session === 'Race' || session === 'Sprint' ? [{ label: 'Position Changes', value: 'positions' }] : []),
+                        ...(session === 'Race' || session === 'Sprint'
+                            ? [{ label: 'Position Changes', value: 'positions' }]
+                            : []),
                         { label: 'Lap Times', value: 'laptimes' },
-                        ...(session === 'Race' ? [{ label: 'Pit Performance', value: 'pitperformance' }] : []),
+                        ...(session === 'Race'
+                            ? [{ label: 'Pit Performance', value: 'pitperformance' }]
+                            : []),
                         { label: 'Min/Max Speed', value: 'maxspeed' },
                         { label: 'Telemetry Comparison', value: 'telemetry' },
                     ].map(({ label, value }) => (
                         <ToggleButton
                             key={value}
                             value={value}
+                            disableRipple
                             sx={{
                                 textTransform: 'none',
-                                color: '#aaa',
-                                border: '1px solid #333',
+                                px: 2.5,
+                                py: 1.2,
+                                fontSize: 14,
+                                fontWeight: 600,
                                 borderRadius: 2,
-                                px: 2,
-                                py: 1,
-                                fontWeight: 500,
-                                fontSize: '0.875rem',
-                                transition: 'all 0.2s ease-in-out',
+                                border: '1px solid transparent',
+                                color: '#ddd',
+
+                                // transition bundle
+                                transition: 'all .25s cubic-bezier(.4,0,.2,1)',
+
+                                // not selected
+                                '&:hover': {
+                                    color: '#fff',
+                                    background: 'rgba(255,255,255,0.08)',
+                                    transform: 'translateY(-2px)',
+                                },
+
+                                // selected state
                                 '&.Mui-selected': {
                                     color: '#fff',
-                                    backgroundColor: '#444',
-                                    borderColor: '#666',
+                                    background:
+                                        'linear-gradient(135deg, #ff216f 0%, #ff9033 100%)', // sunset gradient
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.45)',
+                                    borderColor: 'rgba(255,255,255,0.25)',
+                                    '&:hover': {
+                                        background:
+                                            'linear-gradient(135deg, #ff5185 0%, #ffa463 100%)',
+                                        boxShadow: '0 3px 8px rgba(0,0,0,0.55)',
+                                    },
                                 },
-                                '&:hover': {
-                                    backgroundColor: '#333',
-                                    borderColor: '#555',
+
+                                // focus (keyboard)
+                                '&.Mui-focusVisible': {
+                                    outline: '2px solid #ff7a00',
+                                    outlineOffset: 2,
                                 },
                             }}
                         >
@@ -166,12 +215,13 @@ export default function SessionDash() {
                 </ToggleButtonGroup>
 
 
+
                 {
                     selection == "results" ?
                         (
-                            (session == "Race" || session == "Sprint") ? <RaceResultsTable results={results} year={year} round={round} session={session} /> :
-                                (session == "Qualifying" || session == "Sprint Qualifying" || session == "Sprint Shootout") ? <QualiResultsTable results={results} year={year} round={round} session={session} /> :
-                                    <PracticeResultsTable results={results} year={year} round={round} session={session} />
+                            (session == "Race" || session == "Sprint") ? <RaceResultsTable results={results} year={year} round={round} session={session} availableSessions={availableSessions} /> :
+                                (session == "Qualifying" || session == "Sprint Qualifying" || session == "Sprint Shootout") ? <QualiResultsTable results={results} year={year} round={round} session={session} availableSessions={availableSessions} /> :
+                                    <PracticeResultsTable results={results} year={year} round={round} session={session} availableSessions={availableSessions} />
                         )
                         :
                         selection == "strategy" ?

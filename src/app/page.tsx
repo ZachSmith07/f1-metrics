@@ -1,123 +1,75 @@
 "use client";
 
 import { useEffect, useState } from "react";
-//import styles from "./Home.module.css";
+import {
+    CssBaseline,
+    ThemeProvider,
+    Box,
+    Stack,
+    Typography,
+    Divider,
+} from "@mui/material";
 import darkTheme from "./theme";
-import { F1Event, fetchYearSchedule } from "./utils/fetchYearData";
-import { DisplayEvents } from "./components/DisplayEvents";
-import { DisplayConstructorStandings, DisplayDriverStandings } from "./components/DisplayStandings";
-import { CssBaseline, ThemeProvider, Stack, Typography, Box, ToggleButtonGroup, ToggleButton } from "@mui/material";
-import EmojiFlagsIcon from "@mui/icons-material/EmojiFlags";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import EngineeringIcon from "@mui/icons-material/Engineering";
-
 import Navbar from "./components/Navbar";
+import { F1Event, fetchYearSchedule } from "./utils/fetchYearData";
 import { Standings, fetchStandings } from "./utils/fetchStandings";
+import { DisplayEvents, DisplayEventsBasic } from "./components/DisplayEvents";
+import {
+    DisplayConstructorStandings,
+    DisplayDriverStandings,
+} from "./components/DisplayStandings";
+import Footer from "./components/Footer";
 
 export default function Home() {
-
     const [events, setEvents] = useState<F1Event[]>([]);
     const [standings, setStandings] = useState<Standings>({ drivers: [], teams: [] });
 
-    const [selection, setSelection] = useState("events");
-
-    const handleChange = (_: React.MouseEvent<HTMLElement>, newSelection: string | null) => {
-        if (newSelection !== null) {
-            setSelection(newSelection);
-        }
-    };
-
-    const loadEvents = async (year: string) => {
-        let newEvents: F1Event[] = await fetchYearSchedule(year);
-
-        console.log(newEvents);
-
-        setEvents(newEvents)
-    }
-
-    const loadStandings = async (year: string) => {
-        let standings: Standings = await fetchStandings(year);
-
-        console.log(standings);
-
-        setStandings(standings);
-    }
-
     useEffect(() => {
-        loadEvents("2025");
-        loadStandings("2025");
+        const loadData = async () => {
+            const year = "2025";
+            const [fetchedEvents, fetchedStandings] = await Promise.all([
+                fetchYearSchedule(year),
+                fetchStandings(year),
+            ]);
+
+            setEvents(fetchedEvents);
+            setStandings(fetchedStandings);
+        };
+
+        loadData();
     }, []);
 
-    const toggleSx = {
-        '&.Mui-selected': {
-            backgroundColor: '#cccccc', // light grey
-            color: 'black',
-            '&:hover': {
-                backgroundColor: '#bbbbbb', // slightly darker on hover
-            },
-        },
-    };
+    const today = new Date();
+
+    const pastEvents = events.filter(event => new Date(event.date) < today);
+    const upcomingEvents = events.filter(event => new Date(event.date) >= today);
+
+    const displayEvents = [...pastEvents.slice(-7), ...upcomingEvents].slice(0, 8);
 
     return (
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
             <Navbar />
-            <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" mt="20px">
-                <ToggleButtonGroup
-                    value={selection}
-                    exclusive
-                    onChange={handleChange}
-                    size="medium"
-                    sx={{ borderRadius: 5 }}
-                >
-                    <ToggleButton
-                        value="events"
-                        sx={toggleSx}
-                    >
-                        <EmojiFlagsIcon sx={{ mr: 1 }} />
-                        Events
-                    </ToggleButton>
+            <Box
+                display="flex"
+                flexDirection="row"
+                flexWrap="wrap"
+                justifyContent="center"
+                gap={4}
+            >
+                <Box width="500px">
+                    <DisplayDriverStandings standings={standings.drivers.slice(0, 8)} width="500px" />
+                </Box>
 
-                    <ToggleButton
-                        value="drivers"
-                        sx={toggleSx}
-                    >
-                        <EmojiEventsIcon sx={{ mr: 1 }} />
-                        Drivers
-                    </ToggleButton>
+                <Box width="550px">
+                    <DisplayConstructorStandings standings={standings.teams.slice(0, 10)} width="550px" />
+                </Box>
 
-                    <ToggleButton
-                        value="constructors"
-                        sx={toggleSx}
-                    >
-                        <EngineeringIcon sx={{ mr: 1 }} />
-                        Constructors
-                    </ToggleButton>
-                </ToggleButtonGroup>
-
-
-                {/* <Box display="flex" justifyContent="center">
-                    <DisplayEvents events={events} />
-                </Box> */}
-                {
-                    selection == "events" ?
-                        <Box display="flex" justifyContent="center">
-                            <DisplayEvents events={events} />
-                        </Box>
-                        :
-                        (
-                            selection == "drivers" ?
-                                <Box display="flex" justifyContent="center">
-                                    <DisplayDriverStandings standings={standings.drivers} />
-                                </Box>
-                                :
-                                <Box display="flex" justifyContent="center">
-                                    <DisplayConstructorStandings standings={standings.teams} />
-                                </Box>
-                        )
-                }
+                <Box width="500px">
+                    <DisplayEventsBasic events={displayEvents.reverse()} />
+                </Box>
             </Box>
-
+            <Footer />
         </ThemeProvider>
     );
 }
