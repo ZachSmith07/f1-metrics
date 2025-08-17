@@ -1,6 +1,7 @@
 import { getStorage, ref, getBytes, StorageReference, getBlob } from "firebase/storage";
 import { storage } from "../firebaseConfig";
 import { binToInt } from "./binaryHandling";
+import { json } from "stream/consumers";
 
 export class LiveSession {
 	session: string;
@@ -26,6 +27,20 @@ export class LiveSession {
 	toString(): string {
 		return `LiveSession(session: ${this.session}, name: ${this.name}, country: ${this.country}, laps: ${this.laps})`;
 	}
+
+	static fromMap(jsonData: any): LiveSession {
+		return new LiveSession(
+			jsonData["session"],
+			jsonData["event"],
+			jsonData["rotation"],
+			jsonData["country"],
+			jsonData["laps"],
+			jsonData["marshals"],
+			new Date(new Date(jsonData["start"]).getTime())
+		);
+	}
+
+
 }
 
 export async function getLiveSession(year: String, eventName: String, sessionName: String): Promise<LiveSession> {
@@ -65,6 +80,14 @@ export class LiveDriver {
 	toString(): string {
 		return `LiveDriver(driver: ${this.driver}, teamColour: ${this.teamColour}, driverNumber: ${this.driverNumber})`;
 	}
+
+	static fromJsonData(jsonData: any): LiveDriver[] {
+		let drivers: LiveDriver[] = [];
+		for (let i = 0; i < jsonData.length; i++) {
+			drivers.push(new LiveDriver(jsonData[i][0], jsonData[i][1], jsonData[i][2]));
+		}
+		return drivers;
+	}
 }
 
 export async function getLiveDrivers(year: String, eventName: String, sessionName: String): Promise<LiveDriver[]> {
@@ -75,10 +98,7 @@ export async function getLiveDrivers(year: String, eventName: String, sessionNam
 	const jsonStr = new TextDecoder("utf-8").decode(data);
 	const jsonData = JSON.parse(jsonStr);
 
-	let drivers: LiveDriver[] = [];
-	for (let i = 0; i < jsonData.length; i++) {
-		drivers.push(new LiveDriver(jsonData[i][0], jsonData[i][1], jsonData[i][2]));
-	}
+	let drivers: LiveDriver[] = LiveDriver.fromJsonData(jsonData)
 
 	return drivers;
 }
@@ -93,7 +113,7 @@ export interface LiveTelemetry {
 	driverNum: number;
 }
 
-export interface LivePosition {
+export interface LiveLocation {
 	x: number;
 	y: number;
 	time: Date;
@@ -118,7 +138,7 @@ export interface LiveDriverSector {
 	pbDuration: number;
 	sectorNum: number;
 	time: Date;
-	normalTiming: boolean;
+	currentLap: boolean;
 }
 
 export interface LiveDriverSectorTiming {
@@ -136,7 +156,7 @@ export interface LiveDriverTyre {
 	time: Date;
 }
 
-export interface LiveDriverLap {
+export interface LiveDriverFastestLap {
 	driverNum: number;
 	s1: number;
 	s2: number;
@@ -157,7 +177,7 @@ export interface FastestSectors {
 
 export interface LiveData {
 	telemetry: LiveTelemetry[];
-	positions: LivePosition[];
+	positions: LiveLocation[];
 	driverPositions: LiveDriverPosition[];
 	driverIntervals: LiveDriverInterval[];
 	driverSectors: LiveDriverSector[];
@@ -166,9 +186,8 @@ export interface LiveData {
 	trackState: number;
 	driverLiveTiming: LiveDriverSectorTiming[];
 	fastestSectors: FastestSectors;
-	fastestLaps: { [key: string]: LiveDriverLap };
+	fastestLaps: { [key: string]: LiveDriverFastestLap };
 	driversActive: number;
-	// marshalSectors: LiveMarshalSectors[];
 }
 
 function formatDateCustom(date: Date): string {
@@ -199,12 +218,10 @@ const formatTime = (value: number) => {
 		return `-.---`;
 	}
 	else {
-		if (value > 60)
-		{
-			return `${Math.floor(value/60)}:${(value % 60).toFixed(3)}`;
+		if (value > 60) {
+			return `${Math.floor(value / 60)}:${(value % 60).toFixed(3)}`;
 		}
-		else
-		{
+		else {
 			return `+${value.toFixed(3)}`;
 		}
 	}
@@ -244,7 +261,7 @@ export async function getLiveData(time: Date, marshalSectorsNum: number, year: S
 
 	length = binToInt(boolList.splice(0, 12));
 
-	let positions: LivePosition[] = [];
+	let positions: LiveLocation[] = [];
 
 	for (let i = 0; i < length; i++) {
 		const driverNum = binToInt(boolList.splice(0, 7))
@@ -309,7 +326,7 @@ export async function getLiveData(time: Date, marshalSectorsNum: number, year: S
 		let sectorNum = binToInt(boolList.splice(0, 2));
 		const timeAdd = binToInt(boolList.splice(0, 12));
 		let timestamp = new Date(time.getTime() + timeAdd);
-		driverSectors.push({ driverNum: driverNum, duration: duration, pbDuration: pbDuration, sectorNum: sectorNum, time: timestamp, normalTiming: timestamp.getTime() % 2500 == 0 });
+		driverSectors.push({ driverNum: driverNum, duration: duration, pbDuration: pbDuration, sectorNum: sectorNum, time: timestamp, currentLap: timestamp.getTime() % 2500 == 0 });
 	}
 
 
@@ -340,7 +357,7 @@ export async function getLiveData(time: Date, marshalSectorsNum: number, year: S
 
 
 	length = binToInt(boolList.splice(0, 5));
-	let fastestLaps: { [key: string]: LiveDriverLap } = {};
+	let fastestLaps: { [key: string]: LiveDriverFastestLap } = {};
 	for (let i = 0; i < length; i++) {
 		let driverNum = binToInt(boolList.splice(0, 7));
 		let s1 = binToInt(boolList.splice(0, 19)) / 1000;

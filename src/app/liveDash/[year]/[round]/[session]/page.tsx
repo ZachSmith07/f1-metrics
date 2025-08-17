@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from "react";
 import darkTheme from "../../../../theme";
 import { CssBaseline, ThemeProvider, Stack, Typography, Box, AppBar, Toolbar, IconButton, Button, Dialog, DialogTitle, DialogContent, TextField, DialogActions, Divider } from "@mui/material";
 import Navbar from "../../../../components/Navbar";
-import { FastestSectors, getAllLaps, getLiveData, getLiveDrivers, getLiveSession, getTrackMap, LiveData, LiveDriver, LiveDriverInterval, LiveDriverLap, LiveDriverPosition, LiveDriverSector, LiveDriverSectorTiming, LiveDriverTyre, LiveLapData, LivePosition, LiveSession, LiveTelemetry, Pos } from "../../../../utils/fetchLiveData";
+import { FastestSectors, getAllLaps, getLiveData, getLiveDrivers, getLiveSession, getTrackMap, LiveData, LiveDriver, LiveDriverInterval, LiveDriverFastestLap, LiveDriverPosition, LiveDriverSector, LiveDriverSectorTiming, LiveDriverTyre, LiveLapData, LiveLocation, LiveSession, LiveTelemetry, Pos } from "../../../../utils/fetchLiveData";
 import { TrackMapDisplay } from "../../../../components/live/TrackMapDisplay";
 import { DisplayDriverData } from "../../../../components/live/DisplayDriverData";
 import HomeIcon from '@mui/icons-material/Home';
@@ -19,7 +19,7 @@ import { dir } from "console";
 export interface LiveDriverData {
     driver: LiveDriver;
     telemetry: LiveTelemetry[];
-    position: LivePosition[];
+    position: LiveLocation[];
     intervals: LiveDriverInterval[];
     sectors: LiveDriverSector[];
     tyres: LiveDriverTyre[];
@@ -47,7 +47,7 @@ export default function LiveDash() {
     const [mapPoints, setMapPoints] = useState<Pos[]>([]);
     const [sessionData, setSession] = useState<LiveSession>(new LiveSession("", "", 0, "", 0, [], new Date()));
     const [telemetryData, setTelemetryData] = useState<{ [key: string]: LiveDriverData }>({});
-    const [fastestLaps, setFastestLaps] = useState<{ [key: string]: LiveDriverLap }>({});
+    const [fastestLaps, setFastestLaps] = useState<{ [key: string]: LiveDriverFastestLap }>({});
     const [fastestSectors, setFastestSectors] = useState<FastestSectors>({ s1: -1, s2: -1, s3: -1 });
     const [positionsKey, setPositionsKey] = useState<number>(0);
     const [lapNumber, setLapNumber] = useState<number>(0);
@@ -766,18 +766,18 @@ const variants = {
 interface DriverBadgeProps {
     driver: LiveDriverData;
     position: number;
-    fastestLapSectors: LiveDriverLap;
+    fastestLapSectors: LiveDriverFastestLap;
     fastestSectors: FastestSectors;
-    fastestLaps: { [key: string]: LiveDriverLap };
+    fastestLaps: { [key: string]: LiveDriverFastestLap };
     telemetry: { [key: string]: LiveDriverData };
 }
 
 const DriverBadge: React.FC<DriverBadgeProps> = ({ driver, position, fastestLapSectors, fastestSectors, fastestLaps, telemetry }) => {
 
-    const [lap, setLap] = useState<LiveDriverSector>({ driverNum: 0, duration: 0, pbDuration: 0, sectorNum: 0, time: new Date(), normalTiming: true });
-    const [s1, setS1] = useState<LiveDriverSector>({ driverNum: 0, duration: 0, pbDuration: 0, sectorNum: 0, time: new Date(), normalTiming: true });
-    const [s2, setS2] = useState<LiveDriverSector>({ driverNum: 0, duration: 0, pbDuration: 0, sectorNum: 0, time: new Date(), normalTiming: true });
-    const [s3, setS3] = useState<LiveDriverSector>({ driverNum: 0, duration: 0, pbDuration: 0, sectorNum: 0, time: new Date(), normalTiming: true });
+    const [lap, setLap] = useState<LiveDriverSector>({ driverNum: 0, duration: 0, pbDuration: 0, sectorNum: 0, time: new Date(), currentLap: true });
+    const [s1, setS1] = useState<LiveDriverSector>({ driverNum: 0, duration: 0, pbDuration: 0, sectorNum: 0, time: new Date(), currentLap: true });
+    const [s2, setS2] = useState<LiveDriverSector>({ driverNum: 0, duration: 0, pbDuration: 0, sectorNum: 0, time: new Date(), currentLap: true });
+    const [s3, setS3] = useState<LiveDriverSector>({ driverNum: 0, duration: 0, pbDuration: 0, sectorNum: 0, time: new Date(), currentLap: true });
 
     const [normalS1, setNormalS1] = useState<boolean>(driver.liveTiming == undefined ? false : driver.liveTiming!.s1);
     const [normalS2, setNormalS2] = useState<boolean>(driver.liveTiming == undefined ? false : driver.liveTiming!.s2);
@@ -850,7 +850,7 @@ const DriverBadge: React.FC<DriverBadgeProps> = ({ driver, position, fastestLapS
             }
             if (currentS1) {
                 setS1(currentS1);
-                if (!currentS1.normalTiming || (currentS1.duration != s1.duration && s1.duration != 0)) {
+                if (!currentS1.currentLap || (currentS1.duration != s1.duration && s1.duration != 0)) {
                     setNormalS1(true);
                     setNormalS2(false);
                     setNormalS3(false);
@@ -863,7 +863,7 @@ const DriverBadge: React.FC<DriverBadgeProps> = ({ driver, position, fastestLapS
             }
             if (currentS2) {
                 setS2(currentS2);
-                if (!currentS2.normalTiming || (currentS2.duration != s2.duration && s2.duration != 0)) {
+                if (!currentS2.currentLap || (currentS2.duration != s2.duration && s2.duration != 0)) {
                     setNormalS2(true);
                     setNormalS3(false);
                     setSplitProps({ chasing: getFastestDriver(), sectorSplit: s1.duration + s2.duration, bestSectorSplit: getFastestSplit(2) });
@@ -875,7 +875,7 @@ const DriverBadge: React.FC<DriverBadgeProps> = ({ driver, position, fastestLapS
             }
             if (currentS3) {
                 setS3(currentS3);
-                if (!currentS3.normalTiming || (currentS3.duration != s3.duration && s3.duration != 0)) {
+                if (!currentS3.currentLap || (currentS3.duration != s3.duration && s3.duration != 0)) {
                     setNormalS3(true);
                     setSplitProps({ chasing: getFastestDriver(), sectorSplit: s1.duration + s2.duration + s3.duration, bestSectorSplit: getFastestSplit(3) });
                     setSplit(true);
@@ -907,8 +907,8 @@ const DriverBadge: React.FC<DriverBadgeProps> = ({ driver, position, fastestLapS
     };
 
     function getFastestLap(
-        laps: Record<string, LiveDriverLap>
-    ): LiveDriverLap | undefined {
+        laps: Record<string, LiveDriverFastestLap>
+    ): LiveDriverFastestLap | undefined {
         const allLaps = Object.values(laps).filter(lap =>
             lap.s1 !== 0 &&
             lap.s2 !== 0 &&
@@ -1114,7 +1114,7 @@ interface DriverPopupBarProps {
     telemetry: { [key: string]: LiveDriverData };
     positions: LiveDriverPosition[];
     fastestSectors: FastestSectors;
-    fastestLaps: { [key: string]: LiveDriverLap };
+    fastestLaps: { [key: string]: LiveDriverFastestLap };
 }
 
 const DriverPopupBar: React.FC<DriverPopupBarProps> = ({ driversSelected, telemetry, positions, fastestSectors, fastestLaps }) => {

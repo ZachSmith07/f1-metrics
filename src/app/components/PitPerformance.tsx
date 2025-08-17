@@ -7,8 +7,10 @@ import { exo2, exo2Regular } from "../styles";
 import { LapData } from "../classes/lapData";
 import { DriverData } from "../classes/driverData";
 
-class PitPerformance {
-    constructor(public team: string, public pitTime: number, public color: string) { }
+interface PitPerformance {
+    team: string;
+    pitTime: number;
+    color: string;
 }
 
 class Bounds {
@@ -95,7 +97,7 @@ const PitPerformanceChart: React.FC<PitPerformanceProps> = ({ allLapsData, drive
                     if (Math.ceil(pitTime + 1) > driverBound.maxY) {
                         driverBound.maxY = Math.ceil(pitTime + 1);
                     }
-                    driverPitPerformance.push(new PitPerformance(driversData[i].lastName.slice(0, 3).toUpperCase(), pitsTime[i] / pitsCount[i], driversData[i].teamColour));
+                    driverPitPerformance.push({team: driversData[i].lastName.slice(0, 3).toUpperCase(), pitTime: pitsTime[i] / pitsCount[i], color: driversData[i].teamColour});
                 }
             }
 
@@ -108,7 +110,7 @@ const PitPerformanceChart: React.FC<PitPerformanceProps> = ({ allLapsData, drive
                     if (Math.ceil(pitTime + 1) > teamsPitPerformanceBounds.maxY) {
                         teamsPitPerformanceBounds.maxY = Math.ceil(pitTime + 1);
                     }
-                    teamsPitPerformance.push(new PitPerformance(teamsDataT[i].teamName, teamsPitsTime[i] / teamsPitsCount[i], teamsDataT[i].teamColour));
+                    teamsPitPerformance.push({team: teamsDataT[i].teamName, pitTime: teamsPitsTime[i] / teamsPitsCount[i], color: teamsDataT[i].teamColour});
 
                 }
             }

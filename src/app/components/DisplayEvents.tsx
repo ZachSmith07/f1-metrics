@@ -1,5 +1,5 @@
 import { Box, Button, Card, CardActionArea, CardActions, CardContent, CircularProgress, Divider, IconButton, Skeleton, Typography } from "@mui/material";
-import { F1Event } from "../utils/fetchYearData";
+import { EmptyEvent, ResultsEvent } from "../utils/fetchYearData";
 import { getDownloadURL, ref } from "firebase/storage";
 import { storage } from "../firebaseConfig";
 import CloseIcon from '@mui/icons-material/Close';
@@ -11,7 +11,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { motion } from "framer-motion";
 
 type EventCardProps = {
-    event: F1Event;
+    event: EmptyEvent | ResultsEvent;
     eventNum: number;
 };
 
@@ -38,26 +38,28 @@ function EventCard({ event, eventNum }: EventCardProps) {
 
     useEffect(() => {
         const calculateCountdown = () => {
-            const now = new Date();
-            const upcomingSession = event.sessions.find(
-                ([name, date]) => { console.log(`datefix: ${date}`); return new Date(date).getTime() > now.getTime(); }
-            );
+            if (event instanceof EmptyEvent) {
+                const now = new Date();
+                const upcomingSession = event.sessions.find(
+                    ([name, date]) => { console.log(`datefix: ${date}`); return new Date(date).getTime() > now.getTime(); }
+                );
 
-            if (upcomingSession) {
-                const [sessionName, sessionDate] = upcomingSession;
-                setNextSession(upcomingSession[0]);
-                const sessionTime = new Date(sessionDate);
-                const diff = sessionTime.getTime() - now.getTime();
+                if (upcomingSession) {
+                    const [sessionName, sessionDate] = upcomingSession;
+                    setNextSession(upcomingSession[0]);
+                    const sessionTime = new Date(sessionDate);
+                    const diff = sessionTime.getTime() - now.getTime();
 
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-                setDays(days);
-                setHours(hours);
-                setMins(minutes);
-                setSecs(seconds);
+                    setDays(days);
+                    setHours(hours);
+                    setMins(minutes);
+                    setSecs(seconds);
+                }
             }
         };
 
@@ -67,14 +69,6 @@ function EventCard({ event, eventNum }: EventCardProps) {
         const interval = setInterval(calculateCountdown, 1000);
         return () => clearInterval(interval); // Cleanup on unmount
     }, [event.sessions]);
-
-    let check = event.top3 == undefined;
-    if (!check) {
-        if (event.top3!.length == 3) {
-            check = false;
-        }
-        console.log(event.top3);
-    }
 
     useEffect(() => {
         const handleClickOutside = (e: any) => {
@@ -123,7 +117,7 @@ function EventCard({ event, eventNum }: EventCardProps) {
                                     <Button
                                         onContextMenu={(e) => {
                                             e.preventDefault();  // Stops default menu
-                                            setContextMenu({ visible: true, x: e.pageX, y: e.pageY, sessionName: sessionName });
+                                            setContextMenu({ visible: true, x: e.pageX, y: e.pageY, sessionName: sessionName as string });
                                         }}
                                         key={index} variant="contained" disabled={!event.sessions[index][2]} sx={{ height: "50px", bgcolor: "#DDDDDD" }} onClick={() => { router.push(`/session/${event.date.slice(0, 4)}/${eventNum.toString().padStart(2, '0')}) ${event.event}/${sessionName}`) }}>
                                         {sessionName}
@@ -137,7 +131,7 @@ function EventCard({ event, eventNum }: EventCardProps) {
             </div>
         );
     }
-    else if (event.top3 == undefined) {
+    else if (event instanceof EmptyEvent) {
         return (
             <motion.div
                 whileHover={{ scale: 1.02 }}
@@ -175,7 +169,7 @@ function EventCard({ event, eventNum }: EventCardProps) {
 
                                     {/* Sessions display */}
                                     {event.sessions.map(([name, datetime], idx) => {
-                                        const dateObj = new Date(datetime);
+                                        const dateObj = new Date(datetime as string);
                                         const day = dateObj.toLocaleDateString("en-US", { weekday: "long" });
                                         const time = dateObj.toLocaleTimeString("en-GB", {
                                             hour: "2-digit",
@@ -195,11 +189,11 @@ function EventCard({ event, eventNum }: EventCardProps) {
                                                 <Typography fontSize={18}>
                                                     {event.sessions
                                                         .filter(([_, dt]) => {
-                                                            const d = new Date(dt);
+                                                            const d = new Date(dt as string);
                                                             return d.toDateString() === dateObj.toDateString();
                                                         })
                                                         .map(([n, d]) => {
-                                                            const t = new Date(d).toLocaleTimeString("en-GB", {
+                                                            const t = new Date(d as string).toLocaleTimeString("en-GB", {
                                                                 hour: "2-digit",
                                                                 minute: "2-digit",
                                                             });
@@ -471,7 +465,7 @@ function EventCard({ event, eventNum }: EventCardProps) {
 }
 
 type EventListProps = {
-    events: F1Event[];
+    events: (EmptyEvent | ResultsEvent)[];
 };
 
 function EventList({ events }: EventListProps) {
@@ -547,26 +541,28 @@ function EventCardBasic({ event, eventNum }: EventCardProps) {
 
     useEffect(() => {
         const calculateCountdown = () => {
-            const now = new Date();
-            const upcomingSession = event.sessions.find(
-                ([name, date]) => { console.log(`datefix: ${date}`); return new Date(date).getTime() > now.getTime(); }
-            );
+            if (event instanceof EmptyEvent) {
+                const now = new Date();
+                const upcomingSession = event.sessions.find(
+                    ([name, date]) => { console.log(`datefix: ${date}`); return new Date(date).getTime() > now.getTime(); }
+                );
 
-            if (upcomingSession) {
-                const [sessionName, sessionDate] = upcomingSession;
-                setNextSession(upcomingSession[0]);
-                const sessionTime = new Date(sessionDate);
-                const diff = sessionTime.getTime() - now.getTime();
+                if (upcomingSession) {
+                    const [sessionName, sessionDate] = upcomingSession;
+                    setNextSession(upcomingSession[0]);
+                    const sessionTime = new Date(sessionDate);
+                    const diff = sessionTime.getTime() - now.getTime();
 
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-                setDays(days);
-                setHours(hours);
-                setMins(minutes);
-                setSecs(seconds);
+                    setDays(days);
+                    setHours(hours);
+                    setMins(minutes);
+                    setSecs(seconds);
+                }
             }
         };
 
@@ -576,14 +572,6 @@ function EventCardBasic({ event, eventNum }: EventCardProps) {
         const interval = setInterval(calculateCountdown, 1000);
         return () => clearInterval(interval); // Cleanup on unmount
     }, [event.sessions]);
-
-    let check = event.top3 == undefined;
-    if (!check) {
-        if (event.top3!.length == 3) {
-            check = false;
-        }
-        console.log(event.top3);
-    }
 
     useEffect(() => {
         const handleClickOutside = (e: any) => {
@@ -598,7 +586,7 @@ function EventCardBasic({ event, eventNum }: EventCardProps) {
         };
     }, []);
 
-    if (event.top3 == undefined) {
+    if (event instanceof EmptyEvent) {
         return (
             <Card variant="outlined">
 
@@ -626,7 +614,7 @@ function EventCardBasic({ event, eventNum }: EventCardProps) {
 
                             {/* Sessions display */}
                             {event.sessions.map(([name, datetime], idx) => {
-                                const dateObj = new Date(datetime);
+                                const dateObj = new Date(datetime as string);
                                 const day = dateObj.toLocaleDateString("en-US", { weekday: "long" });
                                 const time = dateObj.toLocaleTimeString("en-GB", {
                                     hour: "2-digit",
@@ -648,11 +636,11 @@ function EventCardBasic({ event, eventNum }: EventCardProps) {
                                         <Typography fontSize={18}>
                                             {event.sessions
                                                 .filter(([_, dt]) => {
-                                                    const d = new Date(dt);
+                                                    const d = new Date(dt as string);
                                                     return d.toDateString() === dateObj.toDateString();
                                                 })
                                                 .map(([n, d]) => {
-                                                    const t = new Date(d).toLocaleTimeString("en-GB", {
+                                                    const t = new Date(d as string).toLocaleTimeString("en-GB", {
                                                         hour: "2-digit",
                                                         minute: "2-digit",
                                                     });

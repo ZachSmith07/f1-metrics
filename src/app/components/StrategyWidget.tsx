@@ -83,7 +83,7 @@ const MiniChart: React.FC<MiniChartProps> = ({ data, driver }) => {
 
 type Compound = "SOFT" | "MEDIUM" | "HARD" | "INTERMEDIATE" | "WET" | "UNKNOWN";
 
-type Stint = {
+interface Stint {
     compound: Compound;
     startLap: number;
     endLap: number;
@@ -139,7 +139,7 @@ const compoundColors: Record<Compound, string> = {
     HARD: "#ffffff",
     INTERMEDIATE: "#3cb371",
     WET: "#1e90ff",
-    UNKNOWN: "000000"
+    UNKNOWN: "#000000"
 };
 
 

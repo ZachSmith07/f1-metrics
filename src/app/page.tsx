@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import darkTheme from "./theme";
 import Navbar from "./components/Navbar";
-import { F1Event, fetchYearSchedule } from "./utils/fetchYearData";
+import { ResultsEvent, EmptyEvent, fetchYearSchedule } from "./utils/fetchYearData";
 import { Standings, fetchStandings } from "./utils/fetchStandings";
 import { DisplayEvents, DisplayEventsBasic } from "./components/DisplayEvents";
 import {
@@ -21,7 +21,7 @@ import {
 import Footer from "./components/Footer";
 
 export default function Home() {
-    const [events, setEvents] = useState<F1Event[]>([]);
+    const [events, setEvents] = useState<(ResultsEvent | EmptyEvent)[]>([]);
     const [standings, setStandings] = useState<Standings>({ drivers: [], teams: [] });
 
     useEffect(() => {

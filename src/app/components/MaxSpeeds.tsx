@@ -11,8 +11,10 @@ import Navbar from "../components/Navbar";
 import { fetchSessionData } from "../utils/fetchSessionData";
 import { useParams } from "next/navigation";
 
-class SpeedsPerformance {
-    constructor(public team: string, public value: number, public color: string) { }
+interface SpeedsPerformance {
+    team: string;
+    value: number;
+    color: string;
 }
 
 class Bounds {
@@ -119,7 +121,7 @@ const SpeedsChart: React.FC<SpeedsChartProps> = ({ laps, drivers }) => {
                 let throttleDriversBounds = new Bounds(999, 0);
 
                 for (let i = 0; i < fastestLapsData.length; i++) {
-                    let minSpeed = new SpeedsPerformance(driversData[i].lastName.slice(0, 3).toUpperCase(), fastestLapsData[i].minSpeed, driversData[i].teamColour);
+                    let minSpeed = {team: driversData[i].lastName.slice(0, 3).toUpperCase(), value: fastestLapsData[i].minSpeed, color: driversData[i].teamColour};
                     minDriversSpeeds.push(minSpeed);
                     if (minSpeed.value - 1 < minDriversSpeedBounds.minY) {
                         minDriversSpeedBounds.minY = minSpeed.value - 1;
@@ -128,7 +130,7 @@ const SpeedsChart: React.FC<SpeedsChartProps> = ({ laps, drivers }) => {
                         minDriversSpeedBounds.maxY = minSpeed.value + 1;
                     }
 
-                    let maxSpeed = new SpeedsPerformance(driversData[i].lastName.slice(0, 3).toUpperCase(), fastestLapsData[i].maxSpeed, driversData[i].teamColour);
+                    let maxSpeed = {team: driversData[i].lastName.slice(0, 3).toUpperCase(), value: fastestLapsData[i].maxSpeed, color: driversData[i].teamColour};
                     maxDriversSpeeds.push(maxSpeed);
                     if (maxSpeed.value - 1 < maxDriversSpeedBounds.minY) {
                         maxDriversSpeedBounds.minY = maxSpeed.value - 1;
@@ -137,7 +139,7 @@ const SpeedsChart: React.FC<SpeedsChartProps> = ({ laps, drivers }) => {
                         maxDriversSpeedBounds.maxY = maxSpeed.value + 1;
                     }
 
-                    let throttle = new SpeedsPerformance(driversData[i].lastName.slice(0, 3).toUpperCase(), fastestLapsData[i].throttle * 100, driversData[i].teamColour);
+                    let throttle = {team: driversData[i].lastName.slice(0, 3).toUpperCase(), value: fastestLapsData[i].throttle * 100, color: driversData[i].teamColour};
                     throttleDrivers.push(throttle);
                     if (throttle.value - 1 < throttleDriversBounds.minY) {
                         throttleDriversBounds.minY = throttle.value - 1;
@@ -155,7 +157,7 @@ const SpeedsChart: React.FC<SpeedsChartProps> = ({ laps, drivers }) => {
                 let throttleTeamsBounds = new Bounds(999, 0);
 
                 for (let i = 0; i < fastestLapsTeams.length; i++) {
-                    let minSpeed = new SpeedsPerformance(teamsData[i].teamName, fastestLapsTeams[i].minSpeed, teamsData[i].teamColour);
+                    let minSpeed = {team: teamsData[i].teamName, value: fastestLapsTeams[i].minSpeed, color: teamsData[i].teamColour};
                     minTeamsSpeeds.push(minSpeed);
                     if (minSpeed.value - 1 < minTeamsSpeedBounds.minY) {
                         minTeamsSpeedBounds.minY = minSpeed.value - 1;
@@ -164,7 +166,7 @@ const SpeedsChart: React.FC<SpeedsChartProps> = ({ laps, drivers }) => {
                         minTeamsSpeedBounds.maxY = minSpeed.value + 1;
                     }
 
-                    let maxSpeed = new SpeedsPerformance(teamsData[i].teamName, fastestLapsTeams[i].maxSpeed, teamsData[i].teamColour);
+                    let maxSpeed = {team: teamsData[i].teamName, value: fastestLapsTeams[i].maxSpeed, color: teamsData[i].teamColour};
                     maxTeamsSpeeds.push(maxSpeed);
                     if (maxSpeed.value - 1 < maxTeamsSpeedBounds.minY) {
                         maxTeamsSpeedBounds.minY = maxSpeed.value - 1;
@@ -173,7 +175,7 @@ const SpeedsChart: React.FC<SpeedsChartProps> = ({ laps, drivers }) => {
                         maxTeamsSpeedBounds.maxY = maxSpeed.value + 1;
                     }
 
-                    let throttle = new SpeedsPerformance(teamsData[i].teamName, fastestLapsTeams[i].throttle * 100, teamsData[i].teamColour);
+                    let throttle = {team: teamsData[i].teamName, value: fastestLapsTeams[i].throttle * 100, color: teamsData[i].teamColour};
                     throttleTeams.push(throttle);
                     if (throttle.value - 1 < throttleTeamsBounds.minY) {
                         throttleTeamsBounds.minY = throttle.value - 1;
