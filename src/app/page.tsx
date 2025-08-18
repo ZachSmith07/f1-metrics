@@ -1,75 +1,68 @@
+// HOME PAGE
+
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-    CssBaseline,
-    ThemeProvider,
-    Box,
-    Stack,
-    Typography,
-    Divider,
-} from "@mui/material";
-import darkTheme from "./theme";
+import { Box } from "@mui/material";
 import Navbar from "./components/Navbar";
+import { DisplayEventsBasic } from "./components/DisplayEvents";
+import { DisplayConstructorStandings, DisplayDriverStandings } from "./components/DisplayStandings";
+
+// IMPORTING DATA FETCHERS
 import { ResultsEvent, EmptyEvent, fetchYearSchedule } from "./utils/fetchYearData";
 import { Standings, fetchStandings } from "./utils/fetchStandings";
-import { DisplayEvents, DisplayEventsBasic } from "./components/DisplayEvents";
-import {
-    DisplayConstructorStandings,
-    DisplayDriverStandings,
-} from "./components/DisplayStandings";
-import Footer from "./components/Footer";
 
 export default function Home() {
-    const [events, setEvents] = useState<(ResultsEvent | EmptyEvent)[]>([]);
-    const [standings, setStandings] = useState<Standings>({ drivers: [], teams: [] });
+  const [races, setRaces] = useState<(ResultsEvent | EmptyEvent)[]>([]);
+  const [standings, setStandings] = useState<Standings>({ drivers: [], teams: [] });
 
-    useEffect(() => {
-        const loadData = async () => {
-            const year = "2025";
-            const [fetchedEvents, fetchedStandings] = await Promise.all([
-                fetchYearSchedule(year),
-                fetchStandings(year),
-            ]);
+  useEffect(() => {
+    const loadSeasonData = async () => {
+      // Gets the current year to load
+      const year = (new Date()).getFullYear().toString();
 
-            setEvents(fetchedEvents);
-            setStandings(fetchedStandings);
-        };
+      // Fetching standings and races
+      const [fetchedRaces, fetchedStandings] = await Promise.all([
+        fetchYearSchedule(year),
+        fetchStandings(year),
+      ]);
+      setRaces(fetchedRaces);
+      setStandings(fetchedStandings);
+    };
 
-        loadData();
-    }, []);
+    loadSeasonData();
+  }, []);
 
-    const today = new Date();
+  // Displays the last 7 races and 1 future race - if not enough past races, will display more future races
+  const today = new Date();
+  const pastRaces = races.filter(race => new Date(race.date) < today);
+  const upcomingRaces = races.filter(race => new Date(race.date) >= today);
+  const displayRaces = [...pastRaces.slice(-7), ...upcomingRaces].slice(0, 8);
 
-    const pastEvents = events.filter(event => new Date(event.date) < today);
-    const upcomingEvents = events.filter(event => new Date(event.date) >= today);
+  return (
+    <>
+      <Navbar />
 
-    const displayEvents = [...pastEvents.slice(-7), ...upcomingEvents].slice(0, 8);
+      {/* Displays everything. Box is a row, but if not enough space will wrap and allow as a column. */}
+      <Box
+        display="flex"
+        flexDirection="row"
+        flexWrap="wrap"
+        justifyContent="center"
+        gap={4}
+      >
+        <Box width="500px">
+          <DisplayDriverStandings standings={standings.drivers.slice(0, 8)} width="500px" />
+        </Box>
 
-    return (
-        <ThemeProvider theme={darkTheme}>
-            <CssBaseline />
-            <Navbar />
-            <Box
-                display="flex"
-                flexDirection="row"
-                flexWrap="wrap"
-                justifyContent="center"
-                gap={4}
-            >
-                <Box width="500px">
-                    <DisplayDriverStandings standings={standings.drivers.slice(0, 8)} width="500px" />
-                </Box>
+        <Box width="550px">
+          <DisplayConstructorStandings standings={standings.teams.slice(0, 10)} width="550px" />
+        </Box>
 
-                <Box width="550px">
-                    <DisplayConstructorStandings standings={standings.teams.slice(0, 10)} width="550px" />
-                </Box>
-
-                <Box width="500px">
-                    <DisplayEventsBasic events={displayEvents.reverse()} />
-                </Box>
-            </Box>
-            <Footer />
-        </ThemeProvider>
-    );
+        <Box width="500px">
+          <DisplayEventsBasic events={displayRaces.reverse()} />
+        </Box>
+      </Box>
+    </>
+  );
 }

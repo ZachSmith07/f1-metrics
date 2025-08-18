@@ -1,15 +1,21 @@
 export class TelemetryFrame {
+    // car data
     speed: number;
     gear: number;
     throttle: number;
     brake: number;
     drs: number;
+    time: number;
+
+    // position data
     x: number;
     y: number;
-    time: number;
+
+    // self-calculated info
     relativeDistance: number;
     deltaTime: number;
 
+    // Constructor - generate TelemetryFrame
     constructor(
         speed: number,
         gear: number,
@@ -34,6 +40,7 @@ export class TelemetryFrame {
       this.deltaTime = deltaTime;
     }
 
+    // generates an entire lap's telemetry
     static fromList(list: any[][]): TelemetryFrame[] {
         let telems = [];
         for (let i = 0; i < list[0].length; i++)
@@ -43,69 +50,8 @@ export class TelemetryFrame {
         return telems;
     }
 
+    // converts to string in console
     toString(): string {
         return `TelemetryFrame(speed: ${this.speed}, gear: ${this.gear}, throttle: ${this.throttle}, brake: ${this.brake}, drs: ${this.drs}, x: ${this.x}, y: ${this.y}, time: ${this.time}, relativeDistance: ${this.relativeDistance})`;
     }
-}
-
-export class LapMetadata {
-    year: string;
-    round: string;
-    session: string;
-    driver: string;
-    lapNumber: number;
-    lapTime: number;
-    position: number;
-    colour: string;
-
-    constructor(
-        year: string,
-        round: string,
-        session: string,
-        driver: string,
-        lapNumber: number,
-        lapTime: number,
-        position: number,
-        colour: string
-    ) {
-      this.year = year;
-      this.round = round;
-      this.session = session;
-      this.driver = driver;
-      this.lapNumber = lapNumber;
-      this.lapTime = lapTime;
-      this.position = position;
-      this.colour = colour;
-    }
-
-    toMap(): Record<string, any> {
-        return {
-            year: this.year,
-            round: this.round,
-            session: this.session,
-            driver: this.driver,
-            lapNumber: this.lapNumber,
-            lapTime: this.lapTime,
-            position: this.position,
-            colour: this.colour,
-        };
-    }
-
-    static fromMap(data: Record<string, any>): LapMetadata {
-        return new LapMetadata(
-            data.year,
-            data.round,
-            data.session,
-            data.driver,
-            data.lapNumber,
-            data.lapTime,
-            data.position,
-            data.colour
-        );
-    }
-}
-
-export interface FullLapData {
-    lapMetadata: LapMetadata;
-    lap: TelemetryFrame[];
 }

@@ -18,16 +18,6 @@ interface LiveSession {
 }
 
 export default function Navbar() {
-	// const [user, setUser] = useState<User | null>(null); // Explicitly type as User | null
-
-	// useEffect(() => {
-	//   const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-	//     setUser(currentUser); // TypeScript knows currentUser is User | null
-	//   });
-
-	//   return () => unsubscribe();
-	// }, []);
-
 	useEffect(() => { getLiveSessionData() }, []);
 
 	const [session, setSession] = useState<LiveSession>({ live: false, year: "", round: "", session: "" });

@@ -498,38 +498,5 @@ export const DriverPositionTag = ({
                 {name}
             </div>
         </Box>
-
-
-        // <div
-        //     style={{
-        //         display: "flex",
-        //         alignItems: "center",
-        //         backgroundColor: colour,
-        //         borderRadius: "8px",
-        //         padding: "4px 4px",
-        //         color: "white",
-        //         fontFamily: "sans-serif",
-        //         fontWeight: "bold",
-        //         gap: "8px",
-        //         minWidth: 30,
-        //     }}
-        // >
-        //     <div
-        //         style={{
-        //             backgroundColor: "white",
-        //             color: colour,
-        //             borderRadius: "6px",
-        //             width: 100,
-        //             height: 22,
-        //             display: "flex",
-        //             alignItems: "center",
-        //             justifyContent: "center",
-        //             fontSize: 12,
-        //         }}
-        //     >
-        //         {position}
-        //     </div>
-        //     <div style={{ fontSize: 14 }}>{name}</div>
-        // </div>
     );
 };

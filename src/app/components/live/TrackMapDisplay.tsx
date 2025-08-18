@@ -13,13 +13,11 @@ interface TrackMapDisplayProps {
 	points: Pos[];
 	width?: number;
 	height?: number;
-	outerStroke?: number; // black thickness
-	innerStroke?: number; // white thickness
-	rotationDeg?: number; // rotation in degrees
+	outerStroke?: number;
+	innerStroke?: number;
+	rotationDeg?: number;
 	driversData: { [key: string]: LiveDriverData };
 	positions: number[];
-	// marshalSectors: number[];
-	// sectorStates: number[]; // 0=white,1=yellow,2=doubleyellow
 }
 
 const rotatePoint = (p: Pos, center: Pos, angleRad: number): Pos => {
@@ -73,7 +71,7 @@ export const TrackMapDisplay: React.FC<TrackMapDisplayProps> = ({
 		boxWidth: number,
 		boxHeight: number,
 		rotationDeg: number = 0,
-		padding: number = 30 // Add padding around the track (in pixels)
+		padding: number = 30
 	): Pos[] => {
 		if (trackMap.length === 0) return [];
 
@@ -154,13 +152,6 @@ export const TrackMapDisplay: React.FC<TrackMapDisplayProps> = ({
 				strokeLinejoin="round"
 				strokeLinecap="round"
 			/>
-			{/* <MultiColorPolyline
-				points={polyline}
-				percentages={marshalSectors}
-				sectors={sectorStates}
-				strokeWidth={3}
-			/> */}
-
 			{
 				Object.entries(driversData)
 					.sort(([, a], [, b]) => {

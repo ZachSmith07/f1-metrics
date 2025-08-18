@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 //import styles from "./Home.module.css";
 import darkTheme from "../theme";
-import { F1Event, fetchYearSchedule } from "../utils/fetchYearData";
+import { EmptyEvent, ResultsEvent, fetchYearSchedule } from "../utils/fetchYearData";
 import { DisplayEvents } from "../components/DisplayEvents";
 import { DisplayConstructorStandings, DisplayDriverStandings } from "../components/DisplayStandings";
 import { CssBaseline, ThemeProvider, Stack, Typography, Box, ToggleButtonGroup, ToggleButton } from "@mui/material";
@@ -17,7 +17,7 @@ import Navbar from "../components/Navbar";
 import { Standings, fetchStandings } from "../utils/fetchStandings";
 
 export default function Dash() {
-    const [events, setEvents] = useState<F1Event[]>([]);
+    const [events, setEvents] = useState<(ResultsEvent | EmptyEvent)[]>([]);
     const [standings, setStandings] = useState<Standings>({ drivers: [], teams: [] });
 
     const [selection, setSelection] = useState("events");
@@ -41,7 +41,7 @@ export default function Dash() {
     };
 
     const loadEvents = async (year: string) => {
-        let newEvents: F1Event[] = await fetchYearSchedule(year);
+        let newEvents: (EmptyEvent | ResultsEvent)[] = await fetchYearSchedule(year);
 
         console.log(newEvents);
 

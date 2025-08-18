@@ -37,7 +37,7 @@ export async function fetchSessionData(year: string, round: string, session: str
         const allLapsData: LapData[][] = [];
         const driversData: DriverData[] = [];
         for (let i = 0; i < allJsonData.length / 2; i++) {
-            allLapsData.push(LapData.fromJsonMap(allJsonData[i * 2]));
+            allLapsData.push(LapData.fromJsonList(allJsonData[i * 2]));
             driversData.push(DriverData.fromList(allJsonData[i * 2 + 1]));
         }
 

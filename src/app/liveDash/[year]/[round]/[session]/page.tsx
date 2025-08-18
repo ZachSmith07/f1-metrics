@@ -10,7 +10,6 @@ import { TrackMapDisplay } from "../../../../components/live/TrackMapDisplay";
 import { DisplayDriverData } from "../../../../components/live/DisplayDriverData";
 import HomeIcon from '@mui/icons-material/Home';
 import { fetchLiveTelemetryData } from "../../../../utils/fetchTelemetryData";
-import { LiveAnalysis } from "../../../../components/live/LiveAnalysis";
 import { useParams } from "next/navigation";
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';

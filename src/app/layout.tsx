@@ -1,34 +1,29 @@
+// sets up global styles and themes
+
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+// Global styles (reset + shared CSS)
 import "./globals.css";
+// provides global styles for MUI
+import Providers from "./providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
+// Defines title of the tab, and gives description
 export const metadata: Metadata = {
-  title: "F1-Metrics",
-  description: "Analyse any F1 lap from 2022-today",
+	title: "F1-Metrics",
+	description: "F1 analytics and standings dashboard",
 };
 
+// applies the layout to each page
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en">
+			<body>
+				{/* wraps the page content with the provider - so theme and globals are provided everywhere */}
+				<Providers>{children}</Providers>
+			</body>
+		</html>
+	);
 }

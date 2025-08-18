@@ -1,8 +1,11 @@
 export class DriverData {
+  // Driver's info
   firstName: string;
   lastName: string;
   teamName: string;
   teamColour: string;
+
+  // Driver's session info
   position: number;
   Q1: number;
   Q2: number;
@@ -12,7 +15,7 @@ export class DriverData {
   points: number;
   status: string;
 
-  // Constructor
+  // Constructor - initialises DriverData
   constructor(
     firstName: string,
     lastName: string,
@@ -41,7 +44,7 @@ export class DriverData {
     this.status = status;
   }
 
-  // Convert from an array (similar to the Dart fromList constructor)
+  // helper to convert from list (from .json)
   static fromList(list: any[]): DriverData {
     return new DriverData(
       getFirstName(list[0]),
@@ -58,17 +61,9 @@ export class DriverData {
       list[11]
     );
   }
-
-  // static fromJsonMap(map: any[][]): Array<DriverData> {
-  //     let laps = [];
-  //     for (let i = 0; i < map.length; i++)
-  //     {
-  //         laps.push(DriverData.fromList(map[i]));
-  //     }
-  //     return laps;
-  // }
 }
 
+// Maps teams and driver names to shorter versions - to fit on screen
 const getTeamName = (name: string) => {
   let names: Record<string, string> = { "Red Bull Racing": "Red Bull", "Haas F1 Team": "Haas" };
   if (Object.keys(names).includes(name)) {
