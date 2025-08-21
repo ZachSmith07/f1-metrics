@@ -3,17 +3,12 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import darkTheme from "../../../../theme";
-import { CssBaseline, ThemeProvider, Stack, Typography, Box, AppBar, Toolbar, IconButton, Button, Dialog, DialogTitle, DialogContent, TextField, DialogActions, Divider } from "@mui/material";
-import Navbar from "../../../../components/Navbar";
-import { FastestSectors, getAllLaps, getLiveData, getLiveDrivers, getLiveSession, getTrackMap, LiveData, LiveDriver, LiveDriverInterval, LiveDriverFastestLap, LiveDriverPosition, LiveDriverSector, LiveDriverSectorTiming, LiveDriverTyre, LiveLapData, LiveLocation, LiveSession, LiveTelemetry, Pos } from "../../../../utils/fetchLiveData";
+import { CssBaseline, ThemeProvider, Stack, Typography, Box, AppBar, Toolbar, IconButton, Button, Dialog, DialogTitle, DialogContent, TextField, DialogActions } from "@mui/material";
+import { FastestSectors, getLiveData, getLiveDrivers, getLiveSession, getTrackMap, LiveData, LiveDriver, LiveDriverInterval, LiveDriverFastestLap, LiveDriverPosition, LiveDriverSector, LiveDriverSectorTiming, LiveDriverTyre, LiveLocation, LiveSession, LiveTelemetry, Pos } from "../../../../utils/fetchLiveData";
 import { TrackMapDisplay } from "../../../../components/live/TrackMapDisplay";
 import { DisplayDriverData } from "../../../../components/live/DisplayDriverData";
 import HomeIcon from '@mui/icons-material/Home';
-import { fetchLiveTelemetryData } from "../../../../utils/fetchTelemetryData";
 import { useParams } from "next/navigation";
-import SkipNextIcon from '@mui/icons-material/SkipNext';
-import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
-import { dir } from "console";
 
 export interface LiveDriverData {
     driver: LiveDriver;
@@ -25,7 +20,17 @@ export interface LiveDriverData {
     liveTiming: LiveDriverSectorTiming | undefined;
 }
 
-
+const formatLapTime = (seconds: number): string => {
+    if (seconds >= 60) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        const formattedSeconds = remainingSeconds.toFixed(3).padStart(6, '0'); // Ensures 2 digits + 3 decimals
+        return `${minutes}:${formattedSeconds}`;
+    }
+    else {
+        return seconds.toFixed(3);
+    }
+};
 
 export default function LiveDash() {
 
@@ -62,8 +67,6 @@ export default function LiveDash() {
         delayRef.current.toFixed(1)
     );
 
-    const [liveLapsAnalysis, setLiveLapsAnalysis] = useState<Record<number, LiveLapData[]>>({});
-
     // const [marshalSectors, setMarshalSectors] = useState<LiveMarshalSectors[]>([]);
 
     const hasRun = useRef(false);
@@ -81,12 +84,6 @@ export default function LiveDash() {
 
         return new Date(next);
     }
-
-    const loadLiveAnalysis = async () => {
-        setLiveDriverPositions(driverData.map((x) => x.driverNumber));
-        let liveLaps = await getAllLaps(driverData.map((x) => x.driverNumber));
-        setLiveLapsAnalysis(liveLaps);
-    };
 
     const startSession = async () => {
         let liveSession: LiveSession = await getLiveSession(year, eventName, sessionName);
@@ -110,7 +107,6 @@ export default function LiveDash() {
         setMapPoints(trackMap);
         delayRef.current = ((new Date()).getTime() - date.getTime()) / 1000 + timeBefore;
         loadData();
-        loadLiveAnalysis();
     };
 
     // const resetSession = (delay: number) => {
@@ -647,17 +643,7 @@ const Stopwatch: React.FC<StopwatchProps> = ({ startTime }) => {
     }, [startTime]);
 
 
-    const formatLapTime = (seconds: number): string => {
-        if (seconds >= 60) {
-            const minutes = Math.floor(seconds / 60);
-            const remainingSeconds = seconds % 60;
-            const formattedSeconds = remainingSeconds.toFixed(3).padStart(6, '0'); // Ensures 2 digits + 3 decimals
-            return `${minutes}:${formattedSeconds}`;
-        }
-        else {
-            return seconds.toFixed(3);
-        }
-    };
+
 
     // Format as seconds.milliseconds
     const seconds = formatLapTime(elapsed / 1000);
@@ -691,17 +677,6 @@ interface SplitProps {
 const SplitDisplay: React.FC<SplitProps> = ({ sectorSplit, bestSectorSplit, chasing }) => {
 
 
-    const formatLapTime = (seconds: number): string => {
-        if (seconds >= 60) {
-            const minutes = Math.floor(seconds / 60);
-            const remainingSeconds = seconds % 60;
-            const formattedSeconds = remainingSeconds.toFixed(3).padStart(6, '0'); // Ensures 2 digits + 3 decimals
-            return `${minutes}:${formattedSeconds}`;
-        }
-        else {
-            return seconds.toFixed(3);
-        }
-    };
 
     // Format as seconds.milliseconds
     const seconds = formatLapTime(sectorSplit);
@@ -892,18 +867,6 @@ const DriverBadge: React.FC<DriverBadgeProps> = ({ driver, position, fastestLapS
             if (timeout2) clearTimeout(timeout2);
         };
     }, [driver.sectors]);
-
-    const formatLapTime = (seconds: number): string => {
-        if (seconds >= 60) {
-            const minutes = Math.floor(seconds / 60);
-            const remainingSeconds = seconds % 60;
-            const formattedSeconds = remainingSeconds.toFixed(3).padStart(6, '0'); // Ensures 2 digits + 3 decimals
-            return `${minutes}:${formattedSeconds}`;
-        }
-        else {
-            return seconds.toFixed(3);
-        }
-    };
 
     function getFastestLap(
         laps: Record<string, LiveDriverFastestLap>

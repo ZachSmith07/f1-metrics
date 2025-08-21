@@ -8,6 +8,7 @@ import {
 } from 'recharts';
 import { Box, Button, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { formatLapTime } from "../utils/formatting";
 
 type Compound = "SOFT" | "MEDIUM" | "HARD" | "INTERMEDIATE" | "WET" | "UNKNOWN";
 
@@ -33,20 +34,6 @@ interface DriverLapDataSingle {
     lap: LapData;
 }
 
-function toCompound(input: string): Compound {
-    const compounds: Compound[] = ["SOFT", "MEDIUM", "HARD", "INTERMEDIATE", "WET"];
-    return compounds.includes(input as Compound) ? (input as Compound) : "UNKNOWN";
-}
-
-const compoundColors: Record<Compound, string> = {
-    SOFT: "#ff4c4c",
-    MEDIUM: "#f5e356",
-    HARD: "#ffffff",
-    INTERMEDIATE: "#3cb371",
-    WET: "#1e90ff",
-    UNKNOWN: "000000"
-};
-
 interface DriverLapData {
     driver: DriverData;
     laps: LapData[];
@@ -62,7 +49,6 @@ interface DriverDataLegend {
 
 
 const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData }) => {
-
     const compoundColours: { [key: string]: string } = {
         "SOFT": "#ff4c4c",
         "MEDIUM": "#f5e356",
@@ -75,15 +61,15 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
     const [lineDataLapNumber, setLineDataLapNumber] = useState<DriverLapData[]>([]);
     const [lineDataTyreAge, setLineDataTyreAge] = useState<DriverLapData[]>([]);
 
+    // defines chart boundaries
     const [minLapTime, setMinLapTime] = useState<number>(90);
     const [maxLapTime, setMaxLapTime] = useState<number>(100);
-
     const [minLapNumber, setMinLapNumber] = useState<number>(1);
     const [maxLapNumber, setMaxLapNumber] = useState<number>(78);
-
     const [minTyreAge, setMinTyreAge] = useState<number>(1);
     const [maxTyreAge, setMaxTyreAge] = useState<number>(78);
 
+    // defines types of x-axis
     const [xAxisType, setXAxisType] = useState<"lap number" | "tyre age">(() => {
         return (sessionStorage.getItem("xAxisType") as "lap number" | "tyre age") || "tyre age";
     });
@@ -125,6 +111,7 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
         let minTyreAge = 999;
         let maxTyreAge = 0;
 
+        // finds min and max lap times (as well as lap number and tyre age)
         for (let i = 0; i < lapsData.length; i++) {
             let currentDriverLapData: DriverLapData = { driver: driversData[i], laps: [] };
             let currentDriverLapNumberData: DriverLapData = { driver: driversData[i], laps: [] };
@@ -161,12 +148,6 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
                         minTyreAge = lapsData[i][j].tyreLife;
                     }
                 }
-                // else {
-                //     if (currentDriverLapData.laps.length != 0) {
-                //         lineTyreAgeData.push(currentDriverLapData);
-                //         currentDriverLapData = { driver: driversData[i], laps: [] };
-                //     }
-                // }
             }
             if (currentDriverLapData.laps.length != 0) {
                 lineTyreAgeData.push(currentDriverLapData);
@@ -180,6 +161,8 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
 
         console.log(lineTyreAgeData);
         console.log(lineLapNumberData);
+
+        // sets all variables for rendering
 
         setLineDataLapNumber(lineLapNumberData);
         setLineDataTyreAge(lineTyreAgeData);
@@ -200,19 +183,11 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
         setLaps();
     }, []);
 
-
-    const formatLapTime = (seconds: number): string => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        const formattedSeconds = remainingSeconds.toFixed(3).padStart(6, '0'); // Ensures 2 digits + 3 decimals
-        return `${minutes}:${formattedSeconds}`;
-    };
-
-
-
+    // defines tooltip for the laps
     const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: any[]; label?: number }) => {
         if (active && payload && payload.length && label) {
             console.log(label);
+            // finds the laps
             let lapDatas: DriverLapDataSingle[] = [];
             for (let i = 0; i < lineDataLapNumber.length; i++) {
                 for (let j = 0; j < lineDataLapNumber[i].laps.length; j++) {
@@ -221,6 +196,8 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
                     }
                 }
             }
+
+            // returns the tooltip
             return (
                 <div style={{
                     background: "#333", // Dark grey background
@@ -231,6 +208,7 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
                     boxShadow: "0px 0px 5px rgba(0,0,0,0.4)"
                 }}>
                     <p style={{ fontWeight: "bold", marginBottom: "5px" }}>{xAxisType == "lap number" ? "Lap" : "Tyre Age:"} {label}</p> {/* Shows hovered lap number */}
+                    {/* goes through each lap hovered over */}
                     {lapDatas.map((entry, index) => {
                         return (
                             <div key={index} style={{ marginBottom: "5px" }}>
@@ -251,6 +229,7 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
     };
 
 
+    // defines columns of the legend - that contains driver info
     const legendColumns: GridColDef[] = [
         {
             field: "driverName",
@@ -267,6 +246,7 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
             disableColumnMenu: true,
             resizable: false,
             renderCell: (params: { row: { driverName: string; teamColour: any; isDashed: any; }; }) => (
+                // renders a clickable line - which toggles from dashed to un-dashed
                 <Button onClick={
                     (event) => {
                         let newDriverData = [...driverDataLegend];
@@ -282,37 +262,34 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'start', height: '100%' }}>
                         <svg width="70" height="6">
                             <line
-                                x1="0" // Start the line a little from the left to leave some space
-                                y1="3" // Center vertically
-                                x2="85" // End the line a little from the right to leave some space
-                                y2="3" // Keep the line centered vertically
-                                stroke={params.row.teamColour || 'green'} // Dynamic stroke color
+                                x1="0"
+                                y1="3"
+                                x2="85"
+                                y2="3"
+                                stroke={params.row.teamColour || 'green'}
                                 strokeWidth="4" // Line width
-                                strokeDasharray={params.row.isDashed ? "5,5" : "0"} // Dashed condition
+                                strokeDasharray={params.row.isDashed ? "5,5" : "0"}
                             />
                         </svg>
                     </div>
                 </Button>
             ),
         },
-        // {
-        //     field: "position",
-        //     headerName: "Position",
-        //     width: 110,
-        //     disableColumnMenu: true,
-        //     valueFormatter: (params: number) => params == -1 ? "nan" : params,
-        // },
     ];
 
 
     return (
         lineDataLapNumber.length == 0 ?
+            // default text if no lap selected
             <Typography>
                 Click any of the stints below to display it on a chart, you will be given a quick preview of the laps if you hover over any stint. Or if you want to have more control over which laps are displayed, you can click on custom to choose each lap specifically.
             </Typography>
             :
+            // if at least one lap selected, displays the lap chart
             <Box display="flex" flexDirection="column" height="100%">
                 <Box flexDirection={"row"} display={"flex"} justifyContent={"space-around"} alignItems={"center"} mb={2} >
+
+                    {/* displays x and y-axis choices */}
                     <Box flexDirection={"column"}>
                         <Box flexDirection={"row"} display={"flex"} alignItems={"center"} gap={2}>
                             <Typography variant="body1" marginBottom={1.1}>X Axis:</Typography>
@@ -361,6 +338,7 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
                         </Box>
                     </Box>
 
+                    {/* displays driver legend table */}
                     <Box width={270}>
                         <DataGrid
                             style={{ width: 270 }}
@@ -375,6 +353,7 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
                     </Box>
                 </Box>
                 <Box flexGrow={1} height="0" minHeight={0}>
+                    {/* actual line chart */}
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart key={graphKey}>
                             <CartesianGrid strokeDasharray="3 3" />
@@ -383,6 +362,7 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
                             {<Tooltip content={<CustomTooltip />} />}
                             {
                                 xAxisType == "lap number" ?
+                                    // displays x-axis lap number chart
                                     lineDataLapNumber.map((driverData) => (
                                         <Line
                                             key={driverData.driver.lastName + driverData.laps[0].lapNumber.toString()}
@@ -396,11 +376,14 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
                                             dot={(props) => {
                                                 const { cx, cy, payload } = props;
                                                 const compound = payload.compound as string;
+
+                                                // defines the tyre colour (which fills the circle)
                                                 const fillColor = Object.keys(compoundColours).includes(compound)
                                                     ? compoundColours[compound]
                                                     : "#FFFFFF";
                                                 const lapIndex = driverData.laps.map((x) => x.lapNumber).indexOf(payload.lapNumber);
-                                                // const driverInd = driversData.map((x) => x.firstName + " " + x.lastName).indexOf(driverData.driver.firstName + " " + driverData.driver.lastName);
+
+                                                // checks if the first dot (for whether they should show the dot under certain settings)
                                                 let isFirst = false;
                                                 if (lapIndex == 0) {
                                                     isFirst = true;
@@ -430,6 +413,7 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
                                     )
                                     )
                                     :
+                                    // displays x-axis tyre age chart
                                     lineDataTyreAge.map((driverData) => (
                                         <Line
                                             key={driverData.driver.lastName + driverData.laps[0].lapNumber.toString()}
@@ -447,7 +431,6 @@ const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData
                                                     ? compoundColours[compound]
                                                     : "#FFFFFF";
                                                 const lapIndex = driverData.laps.map((x) => x.lapNumber).indexOf(payload.lapNumber);
-                                                // const driverInd = driversData.map((x) => x.firstName + " " + x.lastName).indexOf(driverData.driver.firstName + " " + driverData.driver.lastName);
                                                 let isFirst = false;
                                                 if (lapIndex == 0) {
                                                     isFirst = true;
