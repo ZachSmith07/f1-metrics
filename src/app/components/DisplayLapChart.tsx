@@ -47,7 +47,7 @@ interface DriverDataLegend {
 }
 
 
-
+// displays the lap chart and options
 const LapChartGraph: React.FC<TyreStrategyChartProps> = ({ lapsData, driversData }) => {
     const compoundColours: { [key: string]: string } = {
         "SOFT": "#ff4c4c",
