@@ -8,6 +8,7 @@ import ChooseLaps from "./ChooseLap";
 import { fetchTelemetryData } from "../utils/fetchTelemetryData";
 import { TelemetryFrame } from "../classes/telemetryData";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { TrackMap } from "./TrackMap";
 
 // input to page section
 type SpeedDistanceProps = {
@@ -284,6 +285,10 @@ const SpeedDistance: React.FC<SpeedDistanceProps> = ({ laps, drivers, year, roun
   return (
     <Box>
       <Box sx={{}} height={"calc(100vh)"} gap={2}>
+        {
+          // displays the track map if there is a loaded lap
+          loadedLaps.length > 0 && <Box height={"700px"}><TrackMap laps={loadedLaps}/></Box>
+        }
         {
           loadedLaps.length == 0 ?
             // default text if not picked a lap

@@ -72,7 +72,7 @@ const BaseCard: React.FC<BaseCardProps> = ({
     </Card>
 );
 
-// === Specific Cards ===
+// Specific Cards
 export const ConstructorStandingCard: React.FC<{
     standing: ConstructorStanding;
     position: number;
@@ -102,7 +102,7 @@ export const DriverStandingCard: React.FC<{
     />
 );
 
-// === Shared List Component ===
+// Shared List Component
 interface StandingsListBaseProps<T> {
     standings: T[];
     renderCard: (standing: T, index: number) => React.ReactNode;
@@ -160,7 +160,7 @@ export const DriverStandingsList: React.FC<{ standings: DriverStanding[] }> = ({
     />
 );
 
-// === Display Wrappers with Title + "View Full Standings" ===
+// Display Wrappers with Title + "View Full Standings"
 const DisplayWrapper: React.FC<{
     title: string;
     width: string;
