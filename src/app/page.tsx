@@ -16,6 +16,14 @@ export default function Home() {
   const [races, setRaces] = useState<(ResultsEvent | EmptyEvent)[]>([]);
   const [standings, setStandings] = useState<Standings>({ drivers: [], teams: [] });
 
+  function isResultEvent(race: ResultsEvent | EmptyEvent): race is ResultsEvent {
+    return "top3" in race;   // Replace with whichever field only ResultsEvent has
+  }
+
+  function isEmptyEvent(race: ResultsEvent | EmptyEvent): race is EmptyEvent {
+    return !isResultEvent(race);
+  }
+
   useEffect(() => {
     const loadSeasonData = async () => {
       // Gets the current year to load
@@ -28,16 +36,36 @@ export default function Home() {
       ]);
       setRaces(fetchedRaces);
       setStandings(fetchedStandings);
+      console.log(fetchedRaces);
     };
 
     loadSeasonData();
   }, []);
 
-  // Displays the last 7 races and 1 future race - if not enough past races, will display more future races
   const today = new Date();
-  const pastRaces = races.filter(race => new Date(race.date) < today);
-  const upcomingRaces = races.filter(race => new Date(race.date) >= today);
-  const displayRaces = [...pastRaces.slice(-7), ...upcomingRaces].slice(0, 8);
+
+  const pastResults = races
+    .filter(r => isResultEvent(r))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  const upcoming = races
+    .filter(r => isEmptyEvent(r))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    console.log(pastResults);
+    console.log(upcoming);
+
+  // --- main logic ---
+  let displayRaces: (ResultsEvent | EmptyEvent)[] = [];
+
+  if (pastResults.length >= 7 && upcoming.length > 0) {
+    const nextRace = upcoming[0];
+    const last7 = pastResults.slice(-7);
+    displayRaces = [...last7, nextRace];
+  } else {
+    displayRaces = [...pastResults.slice(-7), ...upcoming].slice(0, 8);
+  }
+
 
   return (
     <>

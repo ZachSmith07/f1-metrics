@@ -16,6 +16,7 @@ import SpeedsChart from "@/app/components/MaxSpeeds";
 import PositionChanges from "@/app/components/PositionChanges";
 import SpeedDistance from "@/app/components/SpeedDistance";
 import { getMetadata, getStorage, ref } from "firebase/storage";
+import { EmptyEvent, fetchYearSchedule, ResultsEvent } from "@/app/utils/fetchYearData";
 
 export default function SessionDash() {
   const [selection, setSelection] = useState("results");
@@ -50,10 +51,28 @@ export default function SessionDash() {
   };
   useEffect(() => {
     const setSessions = async () => {
-
-      if (await fileExists(`F1DataN/${year}/${round}/Sprint/results.json`)) {
-        setAvailableSessions(["Practice 1", "Sprint Qualifying", "Sprint", "Qualifying", "Race"]);
+      let events: (EmptyEvent | ResultsEvent)[] = await fetchYearSchedule(year);
+      let currentSessions = [];
+      for (let i = 0; i < events.length; i++)
+      {
+        if (`${events[i].round.toString().padStart(2, "0")}) ${events[i].event}` == round)
+        {
+          for (let j = 0; j < events[i].sessions.length; j++)
+          {
+            if (events[i].sessions[j][2] == true)
+            {
+              currentSessions.push(events[i].sessions[j][0]);
+            }
+          }
+        }
       }
+
+      setAvailableSessions(currentSessions);
+
+
+      // if (await fileExists(`F1DataN/${year}/${round}/Sprint/results.json`)) {
+      //   setAvailableSessions(["Practice 1", "Sprint Qualifying", "Sprint", "Qualifying", "Race"]);
+      // }
     }
     setSessions();
   }, []);

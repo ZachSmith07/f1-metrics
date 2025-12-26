@@ -26,26 +26,93 @@ const DateText = ({ date }: { date: string }) => (
 );
 
 // groups sessions by day and displays them (e.g. Friday - Practice 1 (18:00), Practice 2 (20:30))
-const SessionsByDay = ({ sessions }: { sessions: [string, string, boolean?][] }) => {
+type SessionTuple = [string, string, boolean?];
+
+export const SessionsByDay = ({
+  sessions,
+  variant = "full",
+  event,
+  eventNum
+}: {
+  sessions: SessionTuple[];
+  variant: "full" | "basic";
+  event: EventLike;
+  eventNum: number;
+}) => {
+  const router = useRouter();
+
   const groups = useMemo(() => {
-    const byDay: Record<string, [string, string][]> = {};
-    sessions.forEach(([name, dt]) => {
+    const byDay: Record<string, [string, string, boolean][]> = {};
+
+    sessions.forEach(([name, dt, bool]) => {
       const d = new Date(dt);
       const key = d.toDateString();
-      (byDay[key] ??= []).push([name, d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })]);
+      (byDay[key] ??= []).push([
+        name,
+        d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+        Boolean(bool),
+      ]);
     });
+
     return Object.entries(byDay).map(([k, items]) => ({
       label: new Date(k).toLocaleDateString("en-US", { weekday: "long" }),
-      text: items.map(([n, t]) => `${n} (${t})`).join(", "),
+      items,
     }));
   }, [sessions]);
 
   return (
     <>
-      {groups.map(({ label, text }, i) => (
+      {groups.map(({ label, items }, i) => (
         <Box key={i} display="flex" alignItems="center" gap={1} mt={0.5}>
-          <Typography fontSize={20} fontWeight={"bold"}>{label} -</Typography>
-          <Typography fontSize={18} fontWeight={400}>{text}</Typography>
+          <Typography fontSize={20} fontWeight="bold">
+            {label} -
+          </Typography>
+
+          <Box display="flex" alignItems="center" fontSize={18}>
+            {items.map(([name, time, flag], idx) => {
+              const content = `${name} (${time})`;
+
+              if (variant === "basic" && flag) {
+                return (
+                  <Button
+                    key={idx}
+                    variant="text"
+                    size="small"
+                    sx={{
+                      minWidth: "auto",
+                      p: 0,
+                      pl: 0.6,
+                      pr: 0.6,
+                      fontSize: "inherit",
+                      fontWeight: "inherit",
+                      color: "inherit",
+                      textTransform: "none",
+                    }}
+                    onClick={() => {
+                      router.push(
+                        `/session/${event.date.slice(0, 4)}/${String(eventNum).padStart(2, "0")})%20${encodeURIComponent(event.event)}/${encodeURIComponent(name)}`
+                      );
+                    }}
+                  >
+                    {content}
+                  </Button>
+                );
+              }
+
+              return <span key={idx} >{content}</span>;
+            }).reduce<React.ReactNode[]>((prev, curr, idx) => (
+              idx === 0
+                ? [curr]
+                : [
+                  ...prev,
+                  <span key={`comma-${idx}`} style={{ paddingRight: 4 }}>,</span>,
+                  curr
+                ]
+            ), [])
+            }
+          </Box>
+
+
         </Box>
       ))}
     </>
@@ -160,7 +227,7 @@ const FullUpcomingCard = ({ event, eventNum }: { event: EmptyEvent; eventNum: nu
             <Box display="flex" justifyContent="space-between" alignItems="center">
               <Box display="flex" flexDirection="column" gap={0}>
                 <Header prefix={`R${eventNum}`} name={event.event} country={event.country} date={event.date} />
-                <SessionsByDay sessions={event.sessions} />
+                <SessionsByDay sessions={event.sessions} variant="full" event={event} eventNum={eventNum} />
               </Box>
               <Countdown label={c.label} d={c.d} h={c.h} m={c.m} s={c.s} />
             </Box>
@@ -260,7 +327,7 @@ const BasicCard = ({ event, eventNum }: { event: EventLike; eventNum: number }) 
           <Box display="flex" justifyContent="space-between" alignItems="center">
             <Box display="flex" flexDirection="column">
               <Header name={event.event} country={event.country} date={event.date} />
-              <SessionsByDay sessions={event.sessions} />
+              <SessionsByDay sessions={event.sessions} variant="basic" event={event} eventNum={eventNum} />
             </Box>
           </Box>
         </Box>

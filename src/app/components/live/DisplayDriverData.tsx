@@ -57,8 +57,15 @@ export const DisplayDriverData: React.FC<DisplayDriverDataProps> = ({
         {currentPositions.map((number, index) => {
           // driver of position: index + 1
           const driver = drivers[`${number}`];
-          if (!driver) return null; // if driver doesn't exist, return null
-
+          try {
+            const isSC = driver.driver === undefined;
+            driver.driver.teamColour;
+          }
+          catch {
+            return null;
+          }
+          // console.log(driver);
+          // console.log(driver.driver.teamColour);
           return (
             // Setting the re-ordering transition animation
             <Reorder.Item key={number} value={number} style={{ listStyle: "none" }} dragListener={false} drag={false}>

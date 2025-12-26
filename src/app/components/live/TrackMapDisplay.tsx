@@ -165,27 +165,29 @@ export const TrackMapDisplay: React.FC<TrackMapDisplayProps> = ({
             const isSC = data.driver === undefined; // checks if safety car (unrecognised driver number)
 
             // displays the driver dots
-            return (
-              <AnimatedDriverDot
-                key={driverId}
-                name={isSC ? "SC" : data.driver.driver} // sets saftey car name
-                colour={isSC ? "#DDDD00" : data.driver.teamColour} // sets safety car colour
-                telemetry={data}
-                rotationDeg={rotationDeg}
-                rotatedMinX={rotatedMinXStored}
-                rotatedMinY={rotatedMinYStored}
-                rotatedMaxX={rotatedMaxXStored}
-                rotatedMaxY={rotatedMaxYStored}
-                centre={centre}
-                offsetX={offsetXStored}
-                offsetY={offsetYStored}
-                scale={scaleStored}
-                position={isSC ? 0 : positions.indexOf(data.driver.driverNumber) + 1}
-                onSelected={(selected: boolean) => {
-                  if (!isSC) data.driver.selected = selected;
-                }}
-              />
-            );
+            if (!isSC) {
+              return (
+                <AnimatedDriverDot
+                  key={driverId}
+                  name={isSC ? "SC" : data.driver.driver} // sets saftey car name
+                  colour={isSC ? "#DDDD00" : data.driver.teamColour} // sets safety car colour
+                  telemetry={data}
+                  rotationDeg={rotationDeg}
+                  rotatedMinX={rotatedMinXStored}
+                  rotatedMinY={rotatedMinYStored}
+                  rotatedMaxX={rotatedMaxXStored}
+                  rotatedMaxY={rotatedMaxYStored}
+                  centre={centre}
+                  offsetX={offsetXStored}
+                  offsetY={offsetYStored}
+                  scale={scaleStored}
+                  position={isSC ? 0 : positions.indexOf(data.driver.driverNumber) + 1}
+                  onSelected={(selected: boolean) => {
+                    if (!isSC) data.driver.selected = selected;
+                  }}
+                />
+              );
+            }
           })
       }
     </svg>

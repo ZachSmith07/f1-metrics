@@ -53,7 +53,7 @@ export async function fetchTelemetryData(year: string, round: string, session: s
         let x = [];
         for (let i = 0; i < length; i++) {
             // adds to x-positions by decoding a signed 16-bit integer
-            x.push(binToInt(boolList.splice(0, 16), true));
+            x.push(-binToInt(boolList.splice(0, 16), true));
         }
         // decodes y-positions
         let y = [];

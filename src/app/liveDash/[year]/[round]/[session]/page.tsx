@@ -70,16 +70,25 @@ export default function LiveDash() {
     // gets live session data
     let liveSession: LiveSession = await getLiveSession(year, eventName, sessionName);
     // sets session offset
-    const sessionEndDate = new Date(new Date(liveSession.startDate).getTime() + 7200000);
-    const offsetInMinutes = new Date().getTimezoneOffset();
-    const offsetInSeconds = -offsetInMinutes * 60;
+    const sessionEndDate = new Date(new Date(liveSession.startDate).getTime());
+    const offsetInMinutes = new Date(date.toISOString()).getTimezoneOffset() - 60;
+    let offset = -3600;
+    if (eventName == "Monaco Grand Prix")
+    {
+      offset = -7200;
+    }
+    const offsetInSeconds = -offsetInMinutes * 60 + offset;
     let currentDateOff = new Date((new Date()).getTime());
+    
     if (currentDateOff < sessionEndDate) {
       date = getCurrentTime(currentDateOff);
     }
     else {
       date = new Date(liveSession.startDate);
+      console.log(date);
+      console.log(offsetInSeconds);
       date = new Date(date.getTime() + offsetInSeconds * 1000);
+      console.log(date);
     }
     setSession(liveSession);
 
@@ -97,9 +106,11 @@ export default function LiveDash() {
 
   const loadData = async (original = false, delay = delayRef.current) => {
     // fetches live data
-    let liveData: LiveData = await getLiveData(date, 20, year, eventName, sessionName);
+    let liveData: LiveData = await getLiveData(date, 20, year, eventName, sessionName, driverData);
     let telem = liveData.telemetry;
     let newTelemetryData = { ...telemetryData }; // Create a copy to update
+
+    telemetryData;
 
     for (let i = 0; i < telem.length; i++) {
       telem[i].time = new Date(telem[i].time.getTime() + delay * 1000 - timeBefore * 1000 + 350);

@@ -5,6 +5,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 // provides global styles for MUI
 import Providers from "./providers";
+import { exo2 } from "./styles";
+import Script from "next/script";
 
 // Defines title of the tab, and gives description
 export const metadata: Metadata = {
@@ -19,9 +21,20 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en">
+		<html lang="en" className={exo2.className}>
 			<body>
-				{/* wraps the page content with the provider - so theme and globals are provided everywhere */}
+				<Script
+					src="https://www.googletagmanager.com/gtag/js?id=G-F3FKB452VP"
+					strategy="afterInteractive"
+				/>
+				<Script id="google-analytics" strategy="afterInteractive">
+					{`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-F3FKB452VP');
+          `}
+				</Script>
 				<Providers>{children}</Providers>
 			</body>
 		</html>

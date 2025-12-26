@@ -231,7 +231,7 @@ const formatTime = (value: number) => {
 
 
 // function fetching all live data from a 2.5 second frame
-export async function getLiveData(time: Date, marshalSectorsNum: number, year: String, eventName: String, sessionName: String): Promise<LiveData> {
+export async function getLiveData(time: Date, marshalSectorsNum: number, year: String, eventName: String, sessionName: String, driverData: LiveDriver[]): Promise<LiveData> {
   // fetches live data from Cloud Storage
   const sessionRef: StorageReference = ref(storage, `LiveData/${year}/${eventName}/${sessionName}/${formatDateCustom(time)}`);
   const blob = await getBlob(sessionRef);
@@ -252,6 +252,12 @@ export async function getLiveData(time: Date, marshalSectorsNum: number, year: S
   // initialises empty list of telemetry
   let telem: LiveTelemetry[] = [];
 
+  let driverNumbers: Set<Number> = new Set<Number>();
+  for (let i = 0; i < driverData.length; i++)
+  {
+    driverNumbers.add(driverData[i].driverNumber);
+  }
+
   // decoding the actual telemetry
   for (let i = 0; i < length; i++) {
     const driverNum = binToInt(boolList.splice(0, 7));
@@ -264,7 +270,8 @@ export async function getLiveData(time: Date, marshalSectorsNum: number, year: S
     const timeSplit = new Date(time.getTime() + timeAdd); // time add - adds in the delay
 
     // adds the frame to the list of telemetry
-    telem.push({ driverNum: driverNum, speed: speed, throttle: throttle, brake: brake, drs: drs, gear: gear, time: timeSplit });
+    if (driverNumbers.has(driverNum))
+      telem.push({ driverNum: driverNum, speed: speed, throttle: throttle, brake: brake, drs: drs, gear: gear, time: timeSplit });
   }
 
 
@@ -281,7 +288,8 @@ export async function getLiveData(time: Date, marshalSectorsNum: number, year: S
     const timeAdd = binToInt(boolList.splice(0, 12));
     const timeSplit = new Date(time.getTime() + timeAdd);
     // adding the location frames
-    positions.push({ driverNum: driverNum, x: -x, y: y, time: timeSplit });
+    if (driverNumbers.has(driverNum))
+      positions.push({ driverNum: driverNum, x: -x, y: y, time: timeSplit });
   }
 
 
@@ -298,7 +306,15 @@ export async function getLiveData(time: Date, marshalSectorsNum: number, year: S
     let nums: number[] = [];
     for (let j = 0; j < driverCount; j++) {
       const driverNum = binToInt(boolList.splice(0, 7));
-      nums.push(driverNum);
+      
+      if (driverNumbers.has(driverNum))
+      {
+        nums.push(driverNum);
+      }
+      else
+      {
+        console.log(`SAFTEY CAR ERROR NUM 128 ${driverNum}`);
+      }
     }
     driverPositions.push({ driverNums: nums, time: new Date(time.getTime() + timeAdd) });
   }
@@ -334,7 +350,8 @@ export async function getLiveData(time: Date, marshalSectorsNum: number, year: S
     }
     const timeAdd = binToInt(boolList.splice(0, 12));
     let timestamp = new Date(time.getTime() + timeAdd);
-    driverIntervals.push({ driverNum: driverNum, gapToLeader: gapToLeader.toString(), interval: interval.toString(), time: timestamp });
+    if (driverNumbers.has(driverNum))
+      driverIntervals.push({ driverNum: driverNum, gapToLeader: gapToLeader.toString(), interval: interval.toString(), time: timestamp });
   }
 
 
@@ -349,7 +366,8 @@ export async function getLiveData(time: Date, marshalSectorsNum: number, year: S
     let sectorNum = binToInt(boolList.splice(0, 2));
     const timeAdd = binToInt(boolList.splice(0, 12));
     let timestamp = new Date(time.getTime() + timeAdd);
-    driverSectors.push({ driverNum: driverNum, duration: duration, pbDuration: pbDuration, sectorNum: sectorNum, time: timestamp, currentLap: timestamp.getTime() % 2500 == 0 });
+    if (driverNumbers.has(driverNum))
+      driverSectors.push({ driverNum: driverNum, duration: duration, pbDuration: pbDuration, sectorNum: sectorNum, time: timestamp, currentLap: timestamp.getTime() % 2500 == 0 });
   }
 
   // Decodes tyres
@@ -361,7 +379,9 @@ export async function getLiveData(time: Date, marshalSectorsNum: number, year: S
     let driverNum = binToInt(boolList.splice(0, 7));
     let compound = compounds[binToInt(boolList.splice(0, 3))]; // sets compound from pre-set indexes
     let tyreAge = binToInt(boolList.splice(0, 7));
-    driverTyres.push({ driverNum: driverNum, compound: compound, tyreAge: tyreAge, time: time });
+    
+    if (driverNumbers.has(driverNum))
+      driverTyres.push({ driverNum: driverNum, compound: compound, tyreAge: tyreAge, time: time });
   }
 
 
@@ -375,7 +395,9 @@ export async function getLiveData(time: Date, marshalSectorsNum: number, year: S
     let s1 = boolList.splice(0, 1)[0];
     let s2 = boolList.splice(0, 1)[0];
     let s3 = boolList.splice(0, 1)[0];
-    driverLiveTiming.push({ driverNum: driverNum, time: new Date(time.getTime() - msBefore), s1: s1, s2: s2, s3: s3 });
+    
+    if (driverNumbers.has(driverNum))
+      driverLiveTiming.push({ driverNum: driverNum, time: new Date(time.getTime() - msBefore), s1: s1, s2: s2, s3: s3 });
   }
 
 
@@ -388,7 +410,9 @@ export async function getLiveData(time: Date, marshalSectorsNum: number, year: S
     let s2 = binToInt(boolList.splice(0, 19)) / 1000;
     let s3 = binToInt(boolList.splice(0, 19)) / 1000;
     let fl = s1 + s2 + s3; // lap time is total of all sectors
-    fastestLaps[driverNum.toString()] = { s1: s1, s2: s2, s3: s3, lapTime: fl, driverNum: driverNum };
+    
+    if (driverNumbers.has(driverNum))
+      fastestLaps[driverNum.toString()] = { s1: s1, s2: s2, s3: s3, lapTime: fl, driverNum: driverNum };
   }
 
   // calculates fastest sectors

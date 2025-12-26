@@ -131,10 +131,10 @@ export async function fetchYearSchedule(year: string): Promise<(EmptyEvent | Res
     // defines events as a list of EmptyEvent's and ResultsEvent's
     let events: (EmptyEvent | ResultsEvent)[] = [];
 
-    for (let i = 0; i < jsonData.length; i++) {
+    for (let i = 1; i < jsonData.length; i++) {
       // converts each event into their classes
       events.push(mapToEvent(jsonData[i]));
-      events[i].round = i;
+      events[i - 1].round = i;
     }
 
     return events;
