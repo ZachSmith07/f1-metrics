@@ -27,7 +27,7 @@ export default function Home() {
   useEffect(() => {
     const loadSeasonData = async () => {
       // Gets the current year to load
-      const year = (new Date()).getFullYear().toString();
+      const year = "2025";
 
       // Fetching standings and races
       const [fetchedRaces, fetchedStandings] = await Promise.all([

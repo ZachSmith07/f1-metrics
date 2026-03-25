@@ -46,7 +46,7 @@ export default function Dash() {
 
     console.log(newEvents);
 
-    setEvents(newEvents)
+    setEvents(newEvents);
   }
 
   // loads and sets standings
@@ -60,8 +60,8 @@ export default function Dash() {
 
   // loads eventsw and standings for current year
   useEffect(() => {
-    loadEvents((new Date()).getFullYear().toString());
-    loadStandings((new Date()).getFullYear().toString());
+    loadEvents("2025");
+    loadStandings("2025");
   }, []);
 
 

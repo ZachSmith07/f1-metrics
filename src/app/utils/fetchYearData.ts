@@ -1,8 +1,8 @@
 import { ref, getBlob, StorageReference } from "firebase/storage";
 import { storage } from "../firebaseConfig";
 
-// defines event which has the results
-export class ResultsEvent {
+// defines event which has already happened and the results are already fetched
+export interface ResultsEvent {
   event: string;
   country: string;
   date: string;
@@ -13,88 +13,15 @@ export class ResultsEvent {
   topDriver: [string, number];
   fl: string;
   round: number;
-
-  constructor(
-    event: string,
-    country: string,
-    date: string,
-    sessions: string[],
-    round: number,
-    top3: string[],
-    topTeams: [string, number][],
-    championshipLeader: [string, number],
-    topDriver: [string, number],
-    fl: string,
-  ) {
-    this.event = event;
-    this.country = country;
-    // converts to understandable date on windows (as servers on linux)
-    this.date = date.replace(" ", "T").replace(" UTC", "Z");
-    this.sessions = sessions;
-    this.top3 = top3;
-    for (let i = 0; i < topTeams!.length; i++) {
-      if (topTeams![i][0] === "Red Bull Racing") {
-        topTeams![i][0] = "Red Bull";
-      }
-    }
-    this.topTeams = topTeams;
-    this.topDriver = topDriver;
-    this.championshipLeader = championshipLeader;
-    this.fl = fl;
-    this.round = round;
-  }
-
-  toString(): string {
-    return [
-      `ResultsEvent: ${this.event} (${this.country})`,
-      `Date: ${this.date}, Round: ${this.round}`,
-      `Sessions: ${this.sessions.join(", ")}`,
-      `Top 3: ${this.top3.join(", ")}`,
-      `Top Teams: ${this.topTeams.map(t => `${t[0]} (${t[1]})`).join(", ")}`,
-      `Championship Leader: ${this.championshipLeader[0]} (${this.championshipLeader[1]})`,
-      `Top Driver: ${this.topDriver[0]} (${this.topDriver[1]})`,
-      `Fastest Lap: ${this.fl}`
-    ].join("\n");
-  }
 }
 
-// defines event which hasn't happened yet or doesn't have the results for
-export class EmptyEvent {
+// defines event which hasn't happened yet or doesn't have the results for the race
+export interface EmptyEvent {
   event: string;
   country: string;
   date: string;
   sessions: [string, string, boolean][];
   round: number;
-
-  constructor(
-    event: string,
-    country: string,
-    date: string,
-    sessions: [string, string, boolean][],
-    round: number,
-  ) {
-    this.event = event;
-    this.country = country;
-    // converts to understandable date on windows (as servers on linux)
-    this.date = date.replace(" ", "T").replace(" UTC", "Z");
-    let sessionsCopy = sessions;
-    for (let i = 0; i < sessionsCopy.length; i++) {
-      const session = sessionsCopy[i];
-      if (Array.isArray(session)) {
-        session[1] = session[1].replace(" ", "T").replace(" UTC", "Z");
-      }
-    }
-    this.sessions = sessions;
-    this.round = round;
-  }
-
-  toString(): string {
-    return [
-      `EmptyEvent: ${this.event} (${this.country})`,
-      `Date: ${this.date}, Round: ${this.round}`,
-      `Sessions: ${this.sessions.map(s => `${s[0]} @ ${s[1]} (confirmed: ${s[2]})`).join(", ")}`
-    ].join("\n");
-  }
 }
 
 // converts map to either Event's (depending on the information provided)
@@ -111,11 +38,11 @@ function mapToEvent(map: {
 }): EmptyEvent | ResultsEvent {
   if (map.top3 == undefined) {
     // FUTURE EVENT
-    return new EmptyEvent(map.event, map.country, map.date, map.sessions as [string, string, boolean][], 1);
+    return {event: map.event, country: map.country, date: map.date, sessions: map.sessions as [string, string, boolean][], round: 1};
   }
   else {
     // RESULTS EVENT
-    return new ResultsEvent(map.event, map.country, map.date, map.sessions as string[], 1, map.top3, map.topTeams!, map.driversLeader!, map.topDriver!, map.fl!);
+    return {event: map.event, country: map.country, date: map.date, sessions: map.sessions as string[], round: 1, top3: map.top3, topTeams: map.topTeams!, championshipLeader: map.driversLeader!, topDriver: map.topDriver!, fl: map.fl!};
   }
 }
 

@@ -72,7 +72,7 @@ export default function LiveDash() {
     // sets session offset
     const sessionEndDate = new Date(new Date(liveSession.startDate).getTime());
     const offsetInMinutes = new Date(date.toISOString()).getTimezoneOffset() - 60;
-    let offset = -3600;
+    let offset = 0;
     if (eventName == "Monaco Grand Prix")
     {
       offset = -7200;
