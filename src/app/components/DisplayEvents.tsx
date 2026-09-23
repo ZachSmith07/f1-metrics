@@ -7,7 +7,7 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CloseIcon from "@mui/icons-material/Close";
 import { motion } from "framer-motion";
-import { EmptyEvent, ResultsEvent } from "../utils/fetchYearData";
+import type { EmptyEvent, ResultsEvent } from "../utils/fetchYearData";
 
 type EventLike = EmptyEvent | ResultsEvent;
 type EventListProps = { events: EventLike[] };
@@ -320,7 +320,7 @@ const BasicCard = ({ event, eventNum }: { event: EventLike; eventNum: number }) 
   const router = useRouter();
 
   // if event not happened
-  if (event instanceof EmptyEvent) {
+  if (!('top3' in event)) {
     return (
       <Card variant="outlined">
         <Box p="7px 7px 7px 10px">
@@ -376,7 +376,7 @@ const BasicCard = ({ event, eventNum }: { event: EventLike; eventNum: number }) 
 // displays different cards based on the variant and whether it has occured yet
 const EventCard = ({ event, eventNum, variant }: EventCardProps) => {
   if (variant === "basic") return <BasicCard event={event} eventNum={eventNum} />;
-  if (event instanceof EmptyEvent) return <FullUpcomingCard event={event} eventNum={eventNum} />;
+  if (!('top3' in event)) return <FullUpcomingCard event={event} eventNum={eventNum} />;
   return <FullResultsCard event={event} eventNum={eventNum} />;
 };
 

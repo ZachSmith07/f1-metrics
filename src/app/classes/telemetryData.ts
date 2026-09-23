@@ -44,7 +44,7 @@ export class TelemetryFrame {
   static fromList(list: any[][]): TelemetryFrame[] {
     let telems = [];
     for (let i = 0; i < list[0].length; i++) {
-      telems.push(new TelemetryFrame(list[0][i], list[1][i], list[2][i], list[3][i], list[4][i], list[5][i], list[6][i], list[7][i], list[8][i], 0.01));
+      telems.push(new TelemetryFrame(list[0][i], list[1][i], list[2][i], list[3][i], list[4][i], list[5][i], list[6][i], list[7][i], list[8][i], 0));
     }
     return telems;
   }

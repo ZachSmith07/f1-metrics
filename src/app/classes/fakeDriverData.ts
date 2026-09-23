@@ -1,12 +1,10 @@
 export class DriverData {
-  // Driver's info
   firstName: string;
   lastName: string;
   teamName: string;
   teamColour: string;
   gridPosition: number;
 
-  // Constructor - initialises DriverData
   constructor(
     firstName: string,
     lastName: string,
@@ -21,34 +19,28 @@ export class DriverData {
     this.gridPosition = gridPosition;
   }
 
-  // helper to convert from list (from .json)
-  static fromList(list: any[]): DriverData {
+  static fromList(list: [string, string, string, string, number]): DriverData {
     return new DriverData(
-      getFirstName(list[0]),
+      DriverData.formatFirstName(list[0]),
       list[1],
-      getTeamName(list[2]),
+      DriverData.formatTeamName(list[2]),
       "#" + list[3],
       list[4]
     );
   }
-}
 
-// Maps teams and driver names to shorter versions - to fit on screen
-const getTeamName = (name: string) => {
-  let names: Record<string, string> = { "Red Bull Racing": "Red Bull", "Haas F1 Team": "Haas" };
-  if (Object.keys(names).includes(name)) {
-    return names[name];
+  private static formatTeamName(name: string): string {
+    const names: Record<string, string> = {
+      "Red Bull Racing": "Red Bull",
+      "Haas F1 Team": "Haas"
+    };
+    return names[name] ?? name;
   }
-  else {
-    return name;
-  }
-}
-const getFirstName = (name: string) => {
-  let names: Record<string, string> = { "Andrea Kimi": "Kimi" };
-  if (Object.keys(names).includes(name)) {
-    return names[name];
-  }
-  else {
-    return name;
+
+  private static formatFirstName(name: string): string {
+    const names: Record<string, string> = {
+      "Andrea Kimi": "Kimi"
+    };
+    return names[name] ?? name;
   }
 }
